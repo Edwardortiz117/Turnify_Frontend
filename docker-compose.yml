@@ -1,0 +1,50 @@
+# Turnify — frontend contenedorizado, desacoplado del backend.
+#
+# El navegador habla con el frontend (Nginx). Las peticiones /api/*
+# se reenvían a BACKEND_UPSTREAM. El backend puede vivir en el host
+# o en otro contenedor/red Docker.
+#
+# Uso rápido (backend en localhost:3000):
+#   docker compose up --build
+#   → http://localhost:8080
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Vacío = same-origin vía proxy Nginx (recomendado, evita CORS)
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    image: turnify-frontend:local
+    container_name: turnify-frontend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    environment:
+      # Sin protocolo. Opciones:
+      #   host.docker.internal:3000  → API en el host (Windows/Mac/Linux Docker Desktop)
+      #   backend:3000               → servicio llamado "backend" en turnify-net
+      BACKEND_UPSTREAM: ${BACKEND_UPSTREAM:-host.docker.internal:3000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - turnify-net
+    restart: unless-stopped
+
+  # Servicio opcional: une un backend ya existente a la misma red.
+  # Descomenta y ajusta si el backend corre en otro compose/proyecto.
+  #
+  # backend:
+  #   image: tu-registro/turnify-backend:latest
+  #   # o: build: ../turnify-backend
+  #   container_name: turnify-backend
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - turnify-net
+  #   # entonces: BACKEND_UPSTREAM=backend:3000
+
+networks:
+  turnify-net:
+    name: turnify-net
+    driver: bridge

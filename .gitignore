@@ -1,0 +1,26 @@
+# Dependencies & build
+node_modules/
+dist/
+dist-ssr/
+coverage/
+
+# Environment (keep examples)
+.env
+.env.local
+.env.*.local
+frontend/.env
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
