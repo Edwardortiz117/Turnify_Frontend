@@ -1,11 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getDashboard, getProfile } from '../catalog/businessApi'
-import type { BusinessDashboard } from '../../shared/api/types'
+import type { AppointmentStatus, BusinessDashboard } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Card, PageHeader, PageLoading, TextLink } from '../../shared/ui/feedback'
+import { WeekAgenda } from './WeekAgenda'
+
+const STATUS_LABELS: Record<string, string> = {
+  confirmed: 'Confirmadas',
+  cancelled: 'Canceladas',
+  completed: 'Completadas',
+  no_show: 'No asistió',
+}
+
+function statusLabel(status: string): string {
+  return STATUS_LABELS[status] ?? status
+}
 
 export function DashboardPage() {
   const [data, setData] = useState<BusinessDashboard | null>(null)
@@ -72,7 +84,9 @@ export function DashboardPage() {
         {data?.by_status
           ? Object.entries(data.by_status).map(([status, count]) => (
               <Card key={status}>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted">{status}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                  {statusLabel(status as AppointmentStatus)}
+                </p>
                 <p className="mt-2 text-2xl font-semibold tabular-nums">{count}</p>
               </Card>
             ))
@@ -91,6 +105,8 @@ export function DashboardPage() {
           </ul>
         </Card>
       ) : null}
+
+      <WeekAgenda />
     </div>
   )
 }
