@@ -49,6 +49,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   if (!res.ok) {
+    // Clears storage and notifies AuthContext so RequireAuth redirects to login
     if (res.status === 401 && auth) {
       clearSession()
     }

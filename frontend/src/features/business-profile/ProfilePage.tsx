@@ -6,7 +6,7 @@ import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
-import { Card, PageHeader, Spinner } from '../../shared/ui/feedback'
+import { Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
 
 export function ProfilePage() {
   const [profile, setProfile] = useState<Business | null>(null)
@@ -14,11 +14,21 @@ export function ProfilePage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  async function load() {
+    setLoading(true)
+    setError(null)
+    try {
+      setProfile(await getProfile())
+    } catch (err) {
+      setProfile(null)
+      setError(getErrorMessage(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    void getProfile()
-      .then(setProfile)
-      .catch((err) => setError(getErrorMessage(err)))
-      .finally(() => setLoading(false))
+    void load()
   }, [])
 
   async function onSubmit(e: FormEvent) {
@@ -39,8 +49,31 @@ export function ProfilePage() {
     }
   }
 
-  if (loading || !profile) {
-    return <div className="flex justify-center py-16"><Spinner /></div>
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Spinner />
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <div>
+        <PageHeader title="Perfil del negocio" subtitle="Nombre, slug y políticas" />
+        {error ? (
+          <div className="mb-3">
+            <Alert>{error}</Alert>
+          </div>
+        ) : null}
+        <EmptyState
+          title="No se pudo cargar el perfil"
+          description={error ?? 'Intenta de nuevo en unos segundos.'}
+          actionLabel="Reintentar"
+          onAction={() => void load()}
+        />
+      </div>
+    )
   }
 
   return (

@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -9,6 +10,7 @@ import {
 import {
   clearSession,
   loadSession,
+  onSessionCleared,
   saveSession,
   type Session,
 } from '../../shared/auth/session'
@@ -31,6 +33,9 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(() => loadSession())
 
+  // Keep React state in sync when api client clears storage on 401
+  useEffect(() => onSessionCleared(() => setSession(null)), [])
+
   const setSessionFromAuth = useCallback(
     (input: {
       access_token: string
@@ -52,7 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearSession()
-    setSession(null)
   }, [])
 
   const value = useMemo(
