@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { RequireAuth } from './RequireAuth'
-import { AppShell, PlatformShell } from '../shared/ui/layouts'
+import { AppShell } from '../features/app/AppShell'
+import { PlatformShell } from '../features/platform/PlatformShell'
+import { PlatformAccountPage } from '../features/platform/PlatformAccountPage'
 import { HomePage } from '../features/auth/HomePage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { RegisterPage } from '../features/auth/RegisterPage'
@@ -44,6 +46,7 @@ export function AppRouter() {
           <Route index element={<PlatformDashboardPage />} />
           <Route path="businesses" element={<PlatformBusinessesPage />} />
           <Route path="businesses/:businessId" element={<PlatformBusinessDetailPage />} />
+          <Route path="account" element={<PlatformAccountPage />} />
         </Route>
       </Route>
 
