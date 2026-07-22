@@ -9,6 +9,7 @@ import {
 } from '../catalog/businessApi'
 import type { AvailabilityException, Professional, WeeklySlot } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
+import { endOfDayIso, formatInTimeZone, startOfDayIso } from '../../shared/datetime'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
@@ -16,7 +17,16 @@ import { Label } from '../../shared/ui/Label'
 import { Select } from '../../shared/ui/Select'
 import { Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
 
-const DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+/** OpenAPI: day_of_week 1=Mon … 7=Sun */
+const DAY_LABELS: Record<number, string> = {
+  1: 'Lun',
+  2: 'Mar',
+  3: 'Mié',
+  4: 'Jue',
+  5: 'Vie',
+  6: 'Sáb',
+  7: 'Dom',
+}
 
 export function AvailabilityPage() {
   const [professionals, setProfessionals] = useState<Professional[]>([])
@@ -27,6 +37,8 @@ export function AvailabilityPage() {
   const [loading, setLoading] = useState(true)
   const [exDate, setExDate] = useState('')
   const [exType, setExType] = useState<'block' | 'extra_open'>('block')
+  const [exStart, setExStart] = useState('09:00')
+  const [exEnd, setExEnd] = useState('13:00')
 
   useEffect(() => {
     void listProfessionals()
@@ -81,12 +93,15 @@ export function AvailabilityPage() {
   async function addException(e: FormEvent) {
     e.preventDefault()
     try {
-      await createException(professionalId, {
-        date: exDate,
-        type: exType,
-        start_time: exType === 'extra_open' ? '09:00' : undefined,
-        end_time: exType === 'extra_open' ? '13:00' : undefined,
-      })
+      const starts_at =
+        exType === 'block'
+          ? startOfDayIso(exDate)
+          : new Date(`${exDate}T${exStart}:00`).toISOString()
+      const ends_at =
+        exType === 'block'
+          ? endOfDayIso(exDate)
+          : new Date(`${exDate}T${exEnd}:00`).toISOString()
+      await createException(professionalId, { starts_at, ends_at, type: exType })
       setExceptions(await listExceptions(professionalId))
       setExDate('')
     } catch (err) {
@@ -123,11 +138,23 @@ export function AvailabilityPage() {
         <form className="space-y-3" onSubmit={saveSchedule}>
           {slots.map((slot, idx) => (
             <div key={`${slot.day_of_week}-${idx}`} className="flex flex-wrap items-center gap-2">
-              <span className="w-12 text-sm font-medium">{DAYS[slot.day_of_week]}</span>
+              <Select
+                className="w-24"
+                value={slot.day_of_week}
+                onChange={(e) => {
+                  const next = [...slots]
+                  next[idx] = { ...slot, day_of_week: Number(e.target.value) }
+                  setSlots(next)
+                }}
+              >
+                {Object.entries(DAY_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </Select>
               <Input
                 className="w-28"
                 type="time"
-                value={slot.start_time}
+                value={slot.start_time.slice(0, 5)}
                 onChange={(e) => {
                   const next = [...slots]
                   next[idx] = { ...slot, start_time: e.target.value }
@@ -138,7 +165,7 @@ export function AvailabilityPage() {
               <Input
                 className="w-28"
                 type="time"
-                value={slot.end_time}
+                value={slot.end_time.slice(0, 5)}
                 onChange={(e) => {
                   const next = [...slots]
                   next[idx] = { ...slot, end_time: e.target.value }
@@ -185,17 +212,30 @@ export function AvailabilityPage() {
               value={exType}
               onChange={(e) => setExType(e.target.value as 'block' | 'extra_open')}
             >
-              <option value="block">Bloqueo</option>
+              <option value="block">Bloqueo (día completo)</option>
               <option value="extra_open">Apertura extra</option>
             </Select>
           </div>
+          {exType === 'extra_open' ? (
+            <>
+              <div>
+                <Label>Desde</Label>
+                <Input type="time" value={exStart} onChange={(e) => setExStart(e.target.value)} />
+              </div>
+              <div>
+                <Label>Hasta</Label>
+                <Input type="time" value={exEnd} onChange={(e) => setExEnd(e.target.value)} />
+              </div>
+            </>
+          ) : null}
           <Button type="submit" className="self-end">Agregar</Button>
         </form>
         <ul className="space-y-2">
           {exceptions.map((ex) => (
             <li key={ex.id} className="flex items-center justify-between text-sm">
               <span>
-                {ex.date} · {ex.type === 'block' ? 'Bloqueo' : 'Apertura extra'}
+                {formatInTimeZone(ex.starts_at)} – {formatInTimeZone(ex.ends_at)} ·{' '}
+                {ex.type === 'block' ? 'Bloqueo' : 'Apertura extra'}
               </span>
               <Button
                 variant="danger"

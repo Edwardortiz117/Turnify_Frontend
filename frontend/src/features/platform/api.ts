@@ -1,8 +1,14 @@
 import { apiRequest } from '../../shared/api/client'
-import type { Business, BusinessStatus, DashboardPlatform, Paginated } from '../../shared/api/types'
+import type {
+  Business,
+  BusinessStatus,
+  OkTrue,
+  Paginated,
+  PlatformDashboard,
+} from '../../shared/api/types'
 
 export function getPlatformDashboard() {
-  return apiRequest<DashboardPlatform>('/platform/dashboard', { auth: true })
+  return apiRequest<PlatformDashboard>('/platform/dashboard', { auth: true })
 }
 
 export function listBusinesses(limit = 20, offset = 0) {
@@ -19,15 +25,18 @@ export function getBusiness(businessId: string) {
 }
 
 export function patchBusinessStatus(businessId: string, status: BusinessStatus) {
-  return apiRequest<Business>(`/platform/businesses/${businessId}/status`, {
-    method: 'PATCH',
-    auth: true,
-    body: { status },
-  })
+  return apiRequest<{ id: string; status: BusinessStatus }>(
+    `/platform/businesses/${businessId}/status`,
+    {
+      method: 'PATCH',
+      auth: true,
+      body: { status },
+    },
+  )
 }
 
 export function assignManager(businessId: string, user_id: string) {
-  return apiRequest<unknown>(`/platform/businesses/${businessId}/manager`, {
+  return apiRequest<OkTrue>(`/platform/businesses/${businessId}/manager`, {
     method: 'POST',
     auth: true,
     body: { user_id },

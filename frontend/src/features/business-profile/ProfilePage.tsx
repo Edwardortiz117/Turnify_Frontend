@@ -30,8 +30,7 @@ export function ProfilePage() {
       const updated = await updateProfile({
         name: profile.name,
         slug: profile.slug,
-        timezone: profile.timezone,
-        cancellation_policy_hours: profile.cancellation_policy_hours,
+        cancellation_min_hours: profile.cancellation_min_hours,
       })
       setProfile(updated)
       setSuccess('Perfil actualizado.')
@@ -67,21 +66,19 @@ export function ProfilePage() {
           </div>
           <div>
             <Label>Timezone</Label>
-            <Input
-              value={profile.timezone ?? 'America/Bogota'}
-              onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
-            />
+            <Input value={profile.timezone ?? 'America/Bogota'} disabled readOnly />
+            <p className="mt-1 text-xs text-muted">Solo lectura (el API no permite editarlo aquí).</p>
           </div>
           <div>
             <Label>Horas mín. para cancelar</Label>
             <Input
               type="number"
               min={0}
-              value={profile.cancellation_policy_hours ?? 0}
+              value={profile.cancellation_min_hours ?? 0}
               onChange={(e) =>
                 setProfile({
                   ...profile,
-                  cancellation_policy_hours: Number(e.target.value),
+                  cancellation_min_hours: Number(e.target.value),
                 })
               }
             />

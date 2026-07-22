@@ -10,6 +10,8 @@ export type BusinessStatus = 'active' | 'suspended'
 
 export type ProfessionalStatus = 'active' | 'inactive'
 
+export type AppointmentChannel = 'self_service' | 'staff'
+
 export interface ApiErrorBody {
   error: {
     code: string
@@ -32,7 +34,7 @@ export interface AuthTokenResponse {
   scope: AuthScope
   business_id?: string
   user?: { id: string; email: string }
-  business?: Business
+  business?: { id: string; name: string; slug: string }
 }
 
 export interface Business {
@@ -41,7 +43,8 @@ export interface Business {
   slug: string
   timezone?: string
   status?: BusinessStatus
-  cancellation_policy_hours?: number
+  /** OpenAPI: cancellation_min_hours */
+  cancellation_min_hours?: number
 }
 
 export interface Service {
@@ -73,11 +76,11 @@ export interface Appointment {
   professional_id: string
   service_id: string
   client_id: string
-  channel?: string
+  channel?: AppointmentChannel
   forced?: boolean
-  client?: Client
-  service?: Service
-  professional?: Professional
+  client?: Pick<Client, 'id' | 'name' | 'phone'>
+  service?: Pick<Service, 'name' | 'duration_minutes'>
+  professional?: Pick<Professional, 'name'>
 }
 
 export interface Slot {
@@ -85,18 +88,29 @@ export interface Slot {
   ends_at: string
 }
 
+export interface AvailableSlots {
+  date: string
+  professional_id: string
+  service_id: string
+  slots: Slot[]
+}
+
 export interface WeeklySlot {
+  id?: string
   day_of_week: number
   start_time: string
   end_time: string
 }
 
+export interface WeeklySchedule {
+  slots: WeeklySlot[]
+}
+
 export interface AvailabilityException {
   id: string
-  date: string
+  starts_at: string
+  ends_at: string
   type: 'block' | 'extra_open'
-  start_time?: string
-  end_time?: string
 }
 
 export interface Paginated<T> {
@@ -104,19 +118,33 @@ export interface Paginated<T> {
   items: T[]
 }
 
-export interface PublicBusiness {
-  id: string
-  name: string
-  slug: string
-  timezone?: string
-  status?: BusinessStatus
+export interface PublicBusiness extends Business {
   services?: Service[]
 }
 
-export interface DashboardBusiness {
-  [key: string]: number | string | unknown
+export interface BusinessDashboard {
+  appointments_today?: number
+  confirmed_this_week?: number
+  by_status?: Record<string, number>
+  by_professional_today?: Array<{
+    professional_id: string
+    name: string
+    appointments: number
+  }>
 }
 
-export interface DashboardPlatform {
-  [key: string]: number | string | unknown
+export interface PlatformDashboard {
+  businesses_active?: number
+  businesses_suspended?: number
+  confirmed_appointments_last_7_days?: number
+  recent_businesses?: Array<{
+    id: string
+    name: string
+    slug: string
+    created_at: string
+  }>
+}
+
+export interface OkTrue {
+  ok: boolean
 }

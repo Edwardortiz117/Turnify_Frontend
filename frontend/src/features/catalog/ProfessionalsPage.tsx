@@ -55,8 +55,8 @@ export function ProfessionalsPage() {
   async function openOfferings(id: string) {
     setSelectedId(id)
     try {
-      const res = await getProfessionalServices(id)
-      setServiceIds(res.service_ids ?? [])
+      const offered = await getProfessionalServices(id)
+      setServiceIds(offered.map((s) => s.id))
     } catch (err) {
       setError(getErrorMessage(err))
     }

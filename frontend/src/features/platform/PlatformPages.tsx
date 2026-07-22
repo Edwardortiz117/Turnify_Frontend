@@ -8,8 +8,9 @@ import {
   listBusinesses,
   patchBusinessStatus,
 } from './api'
-import type { Business } from '../../shared/api/types'
+import type { Business, PlatformDashboard } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
+import { formatInTimeZone } from '../../shared/datetime'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
@@ -17,7 +18,7 @@ import { Label } from '../../shared/ui/Label'
 import { Badge, Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
 
 export function PlatformDashboardPage() {
-  const [data, setData] = useState<Record<string, unknown> | null>(null)
+  const [data, setData] = useState<PlatformDashboard | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -43,15 +44,37 @@ export function PlatformDashboardPage() {
       />
       {error ? <Alert>{error}</Alert> : null}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {data
-          ? Object.entries(data).map(([k, v]) => (
-              <Card key={k}>
-                <p className="text-xs uppercase text-muted">{k}</p>
-                <p className="mt-2 text-2xl font-semibold">{String(v)}</p>
-              </Card>
-            ))
-          : null}
+        <Card>
+          <p className="text-xs uppercase text-muted">Negocios activos</p>
+          <p className="mt-2 text-2xl font-semibold">{data?.businesses_active ?? 0}</p>
+        </Card>
+        <Card>
+          <p className="text-xs uppercase text-muted">Suspendidos</p>
+          <p className="mt-2 text-2xl font-semibold">{data?.businesses_suspended ?? 0}</p>
+        </Card>
+        <Card>
+          <p className="text-xs uppercase text-muted">Citas confirmadas (7 días)</p>
+          <p className="mt-2 text-2xl font-semibold">
+            {data?.confirmed_appointments_last_7_days ?? 0}
+          </p>
+        </Card>
       </div>
+      {data?.recent_businesses && data.recent_businesses.length > 0 ? (
+        <Card className="mt-4">
+          <h2 className="mb-3 font-semibold">Negocios recientes</h2>
+          <ul className="space-y-2 text-sm">
+            {data.recent_businesses.map((b) => (
+              <li key={b.id} className="flex flex-wrap items-center justify-between gap-2">
+                <span>
+                  {b.name}{' '}
+                  <span className="text-muted">/{b.slug}</span>
+                </span>
+                <span className="text-muted">{formatInTimeZone(b.created_at)}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
     </div>
   )
 }
@@ -166,8 +189,9 @@ export function PlatformBusinessDetailPage() {
     if (!business) return
     const next = business.status === 'suspended' ? 'active' : 'suspended'
     try {
-      setBusiness(await patchBusinessStatus(business.id, next))
-      setMessage(`Estado actualizado a ${next}.`)
+      const res = await patchBusinessStatus(business.id, next)
+      setBusiness({ ...business, status: res.status })
+      setMessage(`Estado actualizado a ${res.status}.`)
     } catch (err) {
       setError(getErrorMessage(err))
     }
@@ -199,6 +223,9 @@ export function PlatformBusinessDetailPage() {
             {business.status ?? 'active'}
           </Badge>
         </p>
+        {business.timezone ? (
+          <p className="text-sm text-muted">Timezone: {business.timezone}</p>
+        ) : null}
         <Button variant="danger" onClick={() => void toggleStatus()}>
           {business.status === 'suspended' ? 'Reactivar' : 'Suspender'}
         </Button>

@@ -1,16 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { listClients, updateClient } from '../catalog/businessApi'
-import type { Client, Paginated } from '../../shared/api/types'
+import type { Client } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
 import { Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
-
-function normalizeClients(data: Client[] | Paginated<Client>): Client[] {
-  return Array.isArray(data) ? data : data.items ?? []
-}
 
 export function ClientsPage() {
   const [q, setQ] = useState('')
@@ -24,7 +20,7 @@ export function ClientsPage() {
     setError(null)
     try {
       const data = await listClients(query)
-      setItems(normalizeClients(data))
+      setItems(data.items ?? [])
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
@@ -43,8 +39,7 @@ export function ClientsPage() {
       await updateClient(editing.id, {
         name: editing.name,
         phone: editing.phone,
-        email: editing.email,
-        active: editing.active,
+        email: editing.email || null,
       })
       setEditing(null)
       await refresh(q)

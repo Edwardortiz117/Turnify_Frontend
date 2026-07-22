@@ -1,31 +1,31 @@
-# Frontend API Contract (English — source of truth for UI)
+# Frontend API Contract (aligned with Turnify OpenAPI 1.0.0)
 
 Base: `VITE_API_BASE_URL` + `/api/v1`  
 Auth: `Authorization: Bearer <access_token>`  
 Dates: ISO 8601 UTC  
-Pagination: `limit` (default 20) + `offset`  
+Pagination: `{ total, items }` with `limit` + `offset`  
 Errors: `{ "error": { "code": string, "message": string, "details": object } }`
 
 ## Auth — `/api/v1/auth`
 
 | Method | Path | Auth | Body / notes |
 |--------|------|------|--------------|
-| POST | `/register` | No | `{ email, password, business: { name, slug } }` → 201 token + user + business |
-| POST | `/login` | No | `{ email, password }` → token + `scope` (+ `business_id` if business) |
+| POST | `/register` | No | `{ email, password, business: { name, slug } }` → 201 `AuthRegisterResponse` (token + user + business) |
+| POST | `/login` | No | `{ email, password }` → `TokenResponse` |
 | GET | `/me` | Bearer | `{ user_id, email, scope, business_id? }` |
 
 Post-login routing: `scope === "platform"` → `/platform`; `scope === "business"` → `/app`.
 
 ## Public — `/api/v1/public`
 
-| Method | Path |
-|--------|------|
-| GET | `/businesses/:slug` |
-| GET | `/businesses/:slug/services` |
-| GET | `/businesses/:slug/services/:serviceId/professionals` |
-| GET | `/businesses/:slug/professionals/:professionalId/services/:serviceId/slots?date=YYYY-MM-DD` |
-| POST | `/businesses/:slug/appointments` (+ optional `Idempotency-Key`) |
-| POST | `/appointments/:appointmentId/cancel` body `{ phone }` |
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/businesses/:slug` | `PublicStorefront` (Business + services) |
+| GET | `/businesses/:slug/services` | `Service[]` |
+| GET | `/businesses/:slug/services/:serviceId/professionals` | `Professional[]` |
+| GET | `/businesses/:slug/professionals/:professionalId/services/:serviceId/slots?date=YYYY-MM-DD` | **`AvailableSlots`**: `{ date, professional_id, service_id, slots: [{ starts_at, ends_at }] }` |
+| POST | `/businesses/:slug/appointments` | Optional header `Idempotency-Key` |
+| POST | `/appointments/:appointmentId/cancel` | Body `{ phone }` |
 
 Reserve body:
 
@@ -38,15 +38,28 @@ Reserve body:
 }
 ```
 
-## Business — `/api/v1/business` (JWT business)
+## Business — `/api/v1/business` (JWT scope=business)
 
-Tenant from token. Areas: dashboard, profile, services, professionals, offerings, weekly-schedule, availability-exceptions, appointments, clients.
+Profile fields: `name`, `slug`, `status`, **`cancellation_min_hours`**, `timezone` (GET).  
+PATCH profile allows: `name`, `slug`, `cancellation_min_hours`, `status` (not timezone).
 
-Appointment status: `confirmed` | `cancelled` | `completed` | `no_show`.
+Professional offerings:
+- GET `/professionals/:id/services` → **`Service[]`**
+- PUT body `{ service_ids: uuid[] }` → **`Service[]`**
 
-## Platform — `/api/v1/platform` (JWT platform)
+Weekly schedule: `{ slots: [{ day_of_week: 1-7 (Mon–Sun), start_time, end_time }] }`
 
-Dashboard, businesses list/create/detail, PATCH status (`active`|`suspended`), POST manager.
+Availability exceptions:
+- Body/response use **`starts_at` / `ends_at`** (date-time) + `type`: `block` | `extra_open`
+- DELETE → `{ ok: true }`
+
+Appointments list/clients list: `{ total, items }`.
+
+Client PATCH: `name`, `phone`, `email` (no `active` in body).
+
+## Platform — `/api/v1/platform` (JWT scope=platform)
+
+Dashboard, businesses list/create/detail, PATCH status (`active`|`suspended` → `{ id, status }`), POST manager `{ user_id }` → `{ ok: true }`.
 
 ## Error codes to map in UI
 

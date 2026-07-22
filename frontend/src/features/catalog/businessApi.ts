@@ -4,23 +4,32 @@ import type {
   AppointmentStatus,
   AvailabilityException,
   Business,
+  BusinessDashboard,
+  BusinessStatus,
   Client,
-  DashboardBusiness,
+  OkTrue,
   Paginated,
   Professional,
+  ProfessionalStatus,
   Service,
+  WeeklySchedule,
   WeeklySlot,
 } from '../../shared/api/types'
 
 export function getDashboard() {
-  return apiRequest<DashboardBusiness>('/business/dashboard', { auth: true })
+  return apiRequest<BusinessDashboard>('/business/dashboard', { auth: true })
 }
 
 export function getProfile() {
   return apiRequest<Business>('/business/profile', { auth: true })
 }
 
-export function updateProfile(body: Partial<Business>) {
+export function updateProfile(body: {
+  name?: string
+  slug?: string
+  cancellation_min_hours?: number
+  status?: BusinessStatus
+}) {
   return apiRequest<Business>('/business/profile', { method: 'PATCH', auth: true, body })
 }
 
@@ -44,20 +53,20 @@ export function updateService(
 }
 
 export function deleteService(serviceId: string) {
-  return apiRequest<void>(`/business/services/${serviceId}`, { method: 'DELETE', auth: true })
+  return apiRequest<Service>(`/business/services/${serviceId}`, { method: 'DELETE', auth: true })
 }
 
 export function listProfessionals() {
   return apiRequest<Professional[]>('/business/professionals', { auth: true })
 }
 
-export function createProfessional(body: { name: string; status?: string }) {
+export function createProfessional(body: { name: string; status?: ProfessionalStatus }) {
   return apiRequest<Professional>('/business/professionals', { method: 'POST', auth: true, body })
 }
 
 export function updateProfessional(
   id: string,
-  body: Partial<{ name: string; status: string }>,
+  body: Partial<{ name: string; status: ProfessionalStatus }>,
 ) {
   return apiRequest<Professional>(`/business/professionals/${id}`, {
     method: 'PATCH',
@@ -66,31 +75,42 @@ export function updateProfessional(
   })
 }
 
+/** OpenAPI: returns Service[], not { service_ids }. */
 export function getProfessionalServices(professionalId: string) {
-  return apiRequest<{ service_ids: string[] }>(
-    `/business/professionals/${professionalId}/services`,
-    { auth: true },
-  )
+  return apiRequest<Service[]>(`/business/professionals/${professionalId}/services`, {
+    auth: true,
+  })
 }
 
 export function putProfessionalServices(professionalId: string, service_ids: string[]) {
-  return apiRequest<{ service_ids: string[] }>(
-    `/business/professionals/${professionalId}/services`,
-    { method: 'PUT', auth: true, body: { service_ids } },
-  )
+  return apiRequest<Service[]>(`/business/professionals/${professionalId}/services`, {
+    method: 'PUT',
+    auth: true,
+    body: { service_ids },
+  })
 }
 
 export function getWeeklySchedule(professionalId: string) {
-  return apiRequest<{ slots: WeeklySlot[] }>(
+  return apiRequest<WeeklySchedule>(
     `/business/professionals/${professionalId}/weekly-schedule`,
     { auth: true },
   )
 }
 
 export function putWeeklySchedule(professionalId: string, slots: WeeklySlot[]) {
-  return apiRequest<{ slots: WeeklySlot[] }>(
+  return apiRequest<WeeklySchedule>(
     `/business/professionals/${professionalId}/weekly-schedule`,
-    { method: 'PUT', auth: true, body: { slots } },
+    {
+      method: 'PUT',
+      auth: true,
+      body: {
+        slots: slots.map(({ day_of_week, start_time, end_time }) => ({
+          day_of_week,
+          start_time,
+          end_time,
+        })),
+      },
+    },
   )
 }
 
@@ -103,7 +123,7 @@ export function listExceptions(professionalId: string) {
 
 export function createException(
   professionalId: string,
-  body: Omit<AvailabilityException, 'id'>,
+  body: { starts_at: string; ends_at: string; type: 'block' | 'extra_open' },
 ) {
   return apiRequest<AvailabilityException>(
     `/business/professionals/${professionalId}/availability-exceptions`,
@@ -112,7 +132,7 @@ export function createException(
 }
 
 export function deleteException(professionalId: string, exceptionId: string) {
-  return apiRequest<void>(
+  return apiRequest<OkTrue>(
     `/business/professionals/${professionalId}/availability-exceptions/${exceptionId}`,
     { method: 'DELETE', auth: true },
   )
@@ -142,7 +162,7 @@ export function createAppointment(body: {
   service_id: string
   starts_at: string
   forced?: boolean
-  client: { name: string; phone: string; email?: string }
+  client: { name: string; phone: string; email?: string | null }
 }) {
   return apiRequest<Appointment>('/business/appointments', { method: 'POST', auth: true, body })
 }
@@ -183,14 +203,15 @@ export function noShowAppointment(id: string) {
   })
 }
 
-export function listClients(q?: string) {
-  const qs = q ? `?q=${encodeURIComponent(q)}` : ''
-  return apiRequest<Client[] | Paginated<Client>>(`/business/clients${qs}`, { auth: true })
+export function listClients(q?: string, limit = 50, offset = 0) {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+  if (q) params.set('q', q)
+  return apiRequest<Paginated<Client>>(`/business/clients?${params}`, { auth: true })
 }
 
 export function updateClient(
   clientId: string,
-  body: Partial<{ name: string; phone: string; email: string | null; active: boolean }>,
+  body: Partial<{ name: string; phone: string; email: string | null }>,
 ) {
   return apiRequest<Client>(`/business/clients/${clientId}`, {
     method: 'PATCH',

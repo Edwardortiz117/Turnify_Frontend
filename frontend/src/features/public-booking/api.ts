@@ -1,6 +1,7 @@
 import { apiRequest } from '../../shared/api/client'
 import type {
   Appointment,
+  AvailableSlots,
   Professional,
   PublicBusiness,
   Service,
@@ -21,16 +22,18 @@ export function listProfessionalsForService(slug: string, serviceId: string) {
   )
 }
 
-export function listSlots(
+/** OpenAPI AvailableSlots → unwrap `slots` for callers. */
+export async function listSlots(
   slug: string,
   professionalId: string,
   serviceId: string,
   date: string,
-) {
+): Promise<Slot[]> {
   const q = new URLSearchParams({ date })
-  return apiRequest<Slot[]>(
+  const res = await apiRequest<AvailableSlots>(
     `/public/businesses/${encodeURIComponent(slug)}/professionals/${professionalId}/services/${serviceId}/slots?${q}`,
   )
+  return res.slots ?? []
 }
 
 export function createPublicAppointment(
