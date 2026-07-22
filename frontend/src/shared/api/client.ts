@@ -50,7 +50,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (!res.ok) {
     // Clears storage and notifies AuthContext so RequireAuth redirects to login
-    if (res.status === 401 && auth) {
+    if (auth && (res.status === 401 || isAccessDisabled(data))) {
       clearSession()
     }
     const bodyErr = data as ApiErrorBody | null
@@ -61,4 +61,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   return data as T
+}
+
+function isAccessDisabled(data: unknown): boolean {
+  const body = data as ApiErrorBody | null
+  return body?.error?.code === 'ACCESS_DISABLED'
 }

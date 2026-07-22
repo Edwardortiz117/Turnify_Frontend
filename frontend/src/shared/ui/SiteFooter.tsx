@@ -1,33 +1,25 @@
-import { Link } from 'react-router-dom'
-
-type FooterLink = { to: string; label: string }
-
 const year = new Date().getFullYear()
 
 export function SiteFooter({
   variant = 'default',
-  links,
 }: {
   variant?: 'default' | 'compact'
-  links?: FooterLink[]
 }) {
   const isCompact = variant === 'compact'
 
   return (
     <footer
       className={`mt-auto border-t border-border bg-white/80 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${
-        isCompact
-          ? 'px-4 py-3 sm:px-6 lg:px-8'
-          : 'px-4 py-6 sm:px-6 sm:py-8'
+        isCompact ? 'px-4 py-3 sm:px-6 lg:px-8' : 'px-4 py-6 sm:px-6 sm:py-8'
       }`}
     >
       <div
-        className={`mx-auto flex w-full flex-col gap-3 ${
-          isCompact ? 'max-w-6xl sm:flex-row sm:items-center sm:justify-between' : 'max-w-3xl gap-4'
+        className={`mx-auto flex w-full max-w-6xl flex-col items-center justify-center text-center ${
+          isCompact ? 'gap-2' : 'gap-3'
         }`}
       >
-        <div className={`flex items-center gap-2 ${isCompact ? '' : 'flex-col sm:flex-row sm:items-center'}`}>
-          <span className="inline-flex aspect-square w-[clamp(1.5rem,3.5vw,2rem)] shrink-0">
+        <div className="group flex flex-col items-center gap-2 sm:flex-row sm:gap-2.5">
+          <span className="inline-flex aspect-square w-[clamp(1.5rem,3.5vw,2rem)] shrink-0 transition-transform duration-200 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
             <img
               src="/favicon.svg"
               alt=""
@@ -38,31 +30,17 @@ export function SiteFooter({
               aria-hidden
             />
           </span>
-          <div className={isCompact ? 'min-w-0' : 'text-center sm:text-left'}>
-            <p className="text-sm font-semibold text-ink">Akatuski</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-ink transition-colors duration-200 group-hover:text-brand-800">
+              Akatuski
+            </p>
             <p className="text-xs text-pretty text-muted">
               Gestión de citas · San José de Cúcuta
             </p>
           </div>
         </div>
 
-        {links && links.length > 0 ? (
-          <nav aria-label="Pie de página" className="flex flex-wrap gap-x-4 gap-y-1">
-            {links.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                className="text-sm font-semibold text-brand-700 hover:text-brand-800"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-        ) : null}
-
-        <p className={`text-xs text-muted ${isCompact ? '' : 'text-center sm:text-left'}`}>
-          © {year} Akatuski
-        </p>
+        <p className="text-xs text-muted">© {year} Akatuski</p>
       </div>
     </footer>
   )

@@ -219,3 +219,32 @@ export function updateClient(
     body,
   })
 }
+
+export function blockProfessional(professionalId: string, cancel_future = false) {
+  return apiRequest<Professional>(`/business/professionals/${professionalId}/block`, {
+    method: 'POST',
+    auth: true,
+    body: { cancel_future },
+  })
+}
+
+export function unblockProfessional(professionalId: string) {
+  return apiRequest<Professional>(`/business/professionals/${professionalId}/unblock`, {
+    method: 'POST',
+    auth: true,
+  })
+}
+
+export function blockClient(clientId: string) {
+  return apiRequest<Client>(`/business/clients/${clientId}/block`, {
+    method: 'POST',
+    auth: true,
+  })
+}
+
+export function unblockClient(clientId: string) {
+  return apiRequest<Client>(`/business/clients/${clientId}/unblock`, {
+    method: 'POST',
+    auth: true,
+  })
+}

@@ -1,11 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
+  blockProfessional,
   createProfessional,
   getProfessionalServices,
   listProfessionals,
   listServices,
   putProfessionalServices,
-  updateProfessional,
+  unblockProfessional,
 } from './businessApi'
 import type { Professional, Service } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
@@ -21,7 +22,10 @@ export function ProfessionalsPage() {
   const [name, setName] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [serviceIds, setServiceIds] = useState<string[]>([])
+  const [blockTarget, setBlockTarget] = useState<Professional | null>(null)
+  const [cancelFuture, setCancelFuture] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   async function refresh() {
@@ -43,6 +47,7 @@ export function ProfessionalsPage() {
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
+    setError(null)
     try {
       await createProfessional({ name, status: 'active' })
       setName('')
@@ -72,10 +77,42 @@ export function ProfessionalsPage() {
     }
   }
 
+  async function confirmBlock() {
+    if (!blockTarget) return
+    setError(null)
+    setMessage(null)
+    try {
+      await blockProfessional(blockTarget.id, cancelFuture)
+      setMessage(
+        cancelFuture
+          ? `${blockTarget.name} bloqueado y citas futuras canceladas.`
+          : `${blockTarget.name} bloqueado (no aparece en la vitrina).`,
+      )
+      setBlockTarget(null)
+      setCancelFuture(false)
+      await refresh()
+    } catch (err) {
+      setError(getErrorMessage(err))
+    }
+  }
+
+  async function onUnblock(p: Professional) {
+    setError(null)
+    setMessage(null)
+    try {
+      await unblockProfessional(p.id)
+      setMessage(`${p.name} desbloqueado.`)
+      await refresh()
+    } catch (err) {
+      setError(getErrorMessage(err))
+    }
+  }
+
   return (
     <div>
-      <PageHeader title="Profesionales" subtitle="Quién atiende y qué servicios ofrece" />
+      <PageHeader title="Equipo" subtitle="Profesionales agendables (sin login en MVP)" />
       {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
+      {message ? <div className="mb-3"><Alert tone="success">{message}</Alert></div> : null}
       <Card className="mb-4">
         <form className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap" onSubmit={onCreate}>
           <div className="min-w-0 flex-1 sm:min-w-[200px]">
@@ -97,7 +134,9 @@ export function ProfessionalsPage() {
             <Card key={p.id} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <div>
                 <p className="font-semibold">{p.name}</p>
-                <Badge tone={p.status === 'active' ? 'success' : 'neutral'}>{p.status}</Badge>
+                <Badge tone={p.status === 'active' ? 'success' : 'neutral'}>
+                  {p.status === 'active' ? 'Activo' : 'Bloqueado'}
+                </Badge>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
@@ -107,22 +146,61 @@ export function ProfessionalsPage() {
                 >
                   Servicios
                 </Button>
-                <Button
-                  variant="secondary"
-                  className="w-full sm:w-auto"
-                  onClick={() =>
-                    void updateProfessional(p.id, {
-                      status: p.status === 'active' ? 'inactive' : 'active',
-                    }).then(refresh)
-                  }
-                >
-                  {p.status === 'active' ? 'Desactivar' : 'Activar'}
-                </Button>
+                {p.status === 'active' ? (
+                  <Button
+                    variant="danger"
+                    className="w-full sm:w-auto"
+                    onClick={() => {
+                      setBlockTarget(p)
+                      setCancelFuture(false)
+                    }}
+                  >
+                    Bloquear
+                  </Button>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                    onClick={() => void onUnblock(p)}
+                  >
+                    Desbloquear
+                  </Button>
+                )}
               </div>
             </Card>
           ))}
         </div>
       )}
+
+      {blockTarget ? (
+        <Card className="mt-4 max-w-lg">
+          <h2 className="mb-2 font-semibold">Bloquear a {blockTarget.name}</h2>
+          <p className="mb-3 text-sm text-pretty text-muted">
+            Quedará inactivo: no aparece en la vitrina ni recibe citas nuevas.
+          </p>
+          <label className="mb-4 flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={cancelFuture}
+              onChange={(e) => setCancelFuture(e.target.checked)}
+            />
+            <span>Cancelar también las citas confirmadas futuras</span>
+          </label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button variant="danger" className="w-full sm:w-auto" onClick={() => void confirmBlock()}>
+              Confirmar bloqueo
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full sm:w-auto"
+              onClick={() => setBlockTarget(null)}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </Card>
+      ) : null}
 
       {selectedId ? (
         <Card className="mt-4">

@@ -18,9 +18,10 @@ services:
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     environment:
-      # Vacío = same-origin vía proxy Vite → BACKEND_UPSTREAM
+      DOCKER: "1"
+      # Vacío = same-origin vía proxy Vite → host.docker.internal
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
-      VITE_PROXY_TARGET: http://${BACKEND_UPSTREAM:-host.docker.internal:3000}
+      VITE_PROXY_TARGET: ${VITE_PROXY_TARGET:-http://host.docker.internal:3000}
       VITE_HMR_CLIENT_PORT: ${FRONTEND_PORT:-5173}
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"

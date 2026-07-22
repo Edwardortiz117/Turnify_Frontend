@@ -6,7 +6,7 @@ const appLinks = [
   { to: '/app', label: 'Dashboard', end: true },
   { to: '/app/appointments', label: 'Agenda' },
   { to: '/app/services', label: 'Servicios' },
-  { to: '/app/professionals', label: 'Profesionales' },
+  { to: '/app/professionals', label: 'Equipo' },
   { to: '/app/availability', label: 'Disponibilidad' },
   { to: '/app/clients', label: 'Clientes' },
 ]

@@ -12,12 +12,12 @@ import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { ApiError } from '../../shared/api/ApiError'
 import { formatInTimeZone, formatTimeInZone, toDateInputValue } from '../../shared/datetime'
 import { PublicLayout } from '../../shared/ui/layouts'
+import { BrandLogo } from '../../shared/ui/BrandLogo'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
 import {
-  BrandEyebrow,
   Card,
   EmptyState,
   PageLoading,
@@ -69,7 +69,13 @@ export function PublicBookingPage() {
           (await listPublicServices(slug)).filter((s) => s.active)
         setServices(svc)
       } catch (err) {
-        if (!cancelled) setError(getErrorMessage(err))
+        if (!cancelled) {
+          if (err instanceof ApiError && err.code === 'BUSINESS_SUSPENDED') {
+            setError('BUSINESS_SUSPENDED')
+          } else {
+            setError(getErrorMessage(err))
+          }
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -154,7 +160,13 @@ export function PublicBookingPage() {
       )
       setStep('done')
     } catch (err) {
-      setError(getErrorMessage(err))
+      if (err instanceof ApiError && err.code === 'CLIENT_BLOCKED') {
+        setError(
+          'Este teléfono está bloqueado y no puede reservar. Contacta al negocio.',
+        )
+      } else {
+        setError(getErrorMessage(err))
+      }
       if (err instanceof ApiError && err.code === 'SLOT_OCCUPIED') {
         setStep('slot')
         setSlot(null)
@@ -177,7 +189,7 @@ export function PublicBookingPage() {
       <PublicLayout>
         <EmptyState
           title="Negocio no disponible"
-          description="Este negocio está temporalmente suspendido."
+          description="Este negocio está temporalmente suspendido o cerrado. Intenta más tarde."
         />
       </PublicLayout>
     )
@@ -196,8 +208,8 @@ export function PublicBookingPage() {
   return (
     <PublicLayout>
       <header className="mb-6 sm:mb-8">
-        <BrandEyebrow />
-        <h1 className="mt-1 font-display text-3xl text-balance text-ink sm:text-4xl">
+        <BrandLogo size="md" className="!mx-0" />
+        <h1 className="mt-3 font-display text-3xl text-balance text-ink sm:text-4xl">
           {business.name}
         </h1>
         <p className="mt-2 text-sm text-pretty text-muted sm:text-base">

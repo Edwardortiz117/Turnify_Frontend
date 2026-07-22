@@ -33,7 +33,7 @@ export function BrandLogo({
     <Link
       to={to}
       aria-label={isAuthenticated ? 'Ir al dashboard' : 'Ir al inicio'}
-      className={`mx-auto inline-flex aspect-square shrink-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${frameClass[size]} ${className}`}
+      className={`mx-auto inline-flex aspect-square shrink-0 rounded-md transition duration-200 ease-out hover:scale-[1.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 motion-reduce:hover:scale-100 ${frameClass[size]} ${className}`}
     >
       <img
         src="/logoT.webp"

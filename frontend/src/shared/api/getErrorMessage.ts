@@ -1,7 +1,55 @@
 import { ApiError } from '../api/ApiError'
 
 export function getErrorMessage(err: unknown): string {
-  if (err instanceof ApiError) return err.message
+  if (err instanceof ApiError) {
+    if (err.code === 'VALIDATION_ERROR' && err.details) {
+      const detailText = formatValidationDetails(err.details)
+      if (detailText) return detailText
+    }
+    return err.message
+  }
   if (err instanceof Error) return err.message
   return 'Ocurrió un error inesperado.'
+}
+
+function formatValidationDetails(details: Record<string, unknown>): string | null {
+  const fieldErrors = details.fieldErrors
+  if (fieldErrors && typeof fieldErrors === 'object' && !Array.isArray(fieldErrors)) {
+    const parts = Object.entries(fieldErrors as Record<string, unknown>)
+      .flatMap(([field, msgs]) => {
+        const list = Array.isArray(msgs) ? msgs : [msgs]
+        return list
+          .filter((m): m is string => typeof m === 'string' && m.length > 0)
+          .map((m) => labelField(field, m))
+      })
+    if (parts.length) return parts.join(' ')
+  }
+
+  const formErrors = details.formErrors
+  if (Array.isArray(formErrors) && formErrors.length) {
+    return formErrors.filter((m): m is string => typeof m === 'string').join(' ')
+  }
+
+  // Backend Zod middleware: { user_id: "Invalid uuid", ... }
+  const flatParts = Object.entries(details)
+    .filter(([key]) => key !== 'fieldErrors' && key !== 'formErrors')
+    .flatMap(([field, msgs]) => {
+      const list = Array.isArray(msgs) ? msgs : [msgs]
+      return list
+        .filter((m): m is string => typeof m === 'string' && m.length > 0)
+        .map((m) => labelField(field, m))
+    })
+  if (flatParts.length) return flatParts.join(' ')
+
+  return null
+}
+
+function labelField(field: string, message: string): string {
+  if (field === 'user_id') {
+    return 'ID de usuario: debe ser un UUID válido.'
+  }
+  if (field === 'document') {
+    return 'Documento: debe tener entre 5 y 32 caracteres alfanuméricos.'
+  }
+  return `${field}: ${message}`
 }

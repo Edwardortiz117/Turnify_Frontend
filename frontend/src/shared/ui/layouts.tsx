@@ -63,8 +63,10 @@ export function ShellFrame({
   }, [navOpen])
 
   const linkClass = (isActive: boolean) =>
-    `min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-      isActive ? 'bg-brand-100 text-brand-800' : 'text-slate-600 hover:bg-slate-50'
+    `min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium transition duration-200 ease-out ${
+      isActive
+        ? 'bg-brand-100 text-brand-800'
+        : 'text-slate-600 hover:translate-x-0.5 hover:bg-slate-50 motion-reduce:hover:translate-x-0'
     }`
 
   return (
@@ -137,7 +139,7 @@ export function ShellFrame({
         </header>
 
         <main className="min-w-0 flex-1 px-4 py-5 pb-5 sm:px-6 sm:py-6 lg:px-8">
-          <div className="mx-auto w-full max-w-6xl">
+          <div className="surface-enter mx-auto w-full max-w-6xl">
             <Outlet />
           </div>
         </main>
@@ -150,19 +152,14 @@ export function ShellFrame({
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 sm:px-6">
+      <div className="surface-enter mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 sm:px-6">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandLogo size="lg" />
           <p className="mt-3 text-sm text-muted">Gestión de citas para tu negocio</p>
         </div>
         {children}
       </div>
-      <SiteFooter
-        links={[
-          { to: '/', label: 'Inicio' },
-          { to: '/login', label: 'Iniciar sesión' },
-        ]}
-      />
+      <SiteFooter />
     </div>
   )
 }
@@ -179,19 +176,13 @@ export function PublicLayout({
   return (
     <div className="flex min-h-dvh flex-col">
       <div
-        className={`mx-auto w-full flex-1 px-4 sm:px-6 ${
+        className={`surface-enter mx-auto w-full flex-1 px-4 sm:px-6 ${
           wide ? 'max-w-3xl' : 'max-w-2xl'
         } ${center ? 'flex flex-col justify-center py-12 sm:py-16' : 'py-6 sm:py-10 lg:py-12'}`}
       >
         {children}
       </div>
-      <SiteFooter
-        links={[
-          { to: '/', label: 'Inicio' },
-          { to: '/login', label: 'Iniciar sesión' },
-          { to: '/register', label: 'Registrar negocio' },
-        ]}
-      />
+      <SiteFooter />
     </div>
   )
 }

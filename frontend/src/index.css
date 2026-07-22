@@ -64,3 +64,21 @@ video {
   max-width: 100%;
   height: auto;
 }
+
+/* Shared presence motion for the four product surfaces (public, auth, app, platform). */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes surface-enter {
+    from {
+      opacity: 0;
+      transform: translateY(0.4rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .surface-enter {
+    animation: surface-enter 0.35s ease-out both;
+  }
+}

@@ -24,6 +24,7 @@ export function RegisterPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [documentId, setDocumentId] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [slug, setSlug] = useState('')
   const [slugTouched, setSlugTouched] = useState(false)
@@ -33,11 +34,17 @@ export function RegisterPage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    const doc = documentId.trim()
+    if (!doc || doc.length < 5) {
+      setError('Ingresa un documento válido (mínimo 5 caracteres).')
+      return
+    }
     setLoading(true)
     try {
       const res = await register({
         email,
         password,
+        document: doc,
         business: { name: businessName, slug },
       })
       setSessionFromAuth({
@@ -87,6 +94,20 @@ export function RegisterPage() {
             <p className="mt-1 text-xs text-muted">Tus clientes reservarán en /{slug || 'tu-negocio'}</p>
           </div>
           <div>
+            <Label htmlFor="document">Documento del gerente</Label>
+            <Input
+              id="document"
+              required
+              autoComplete="off"
+              placeholder="Cédula o documento"
+              value={documentId}
+              onChange={(e) => setDocumentId(e.target.value.replace(/[\s.\-]/g, ''))}
+            />
+            <p className="mt-1 text-xs text-muted">
+              Identidad del gerente; la plataforma puede usarlo para validar el vínculo.
+            </p>
+          </div>
+          <div>
             <Label htmlFor="email">Correo</Label>
             <Input
               id="email"
@@ -102,7 +123,7 @@ export function RegisterPage() {
               id="password"
               type="password"
               required
-              minLength={6}
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

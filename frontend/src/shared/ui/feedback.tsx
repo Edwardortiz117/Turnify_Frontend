@@ -67,7 +67,7 @@ export function TextLink({
   return (
     <Link
       to={to}
-      className={`text-sm font-semibold text-brand-700 hover:text-brand-800 ${className}`}
+      className={`text-sm font-semibold text-brand-700 transition-colors duration-200 hover:text-brand-800 ${className}`}
     >
       {children}
     </Link>
@@ -103,7 +103,7 @@ export function PageHeader({
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5 ${className}`}
+      className={`rounded-xl border border-border bg-card p-4 shadow-sm transition duration-200 ease-out sm:p-5 ${className}`}
     >
       {children}
     </div>
@@ -133,4 +133,4 @@ export function Badge({
 
 /** Shared class for selectable list rows (services, professionals). */
 export const selectableCardClass =
-  'min-h-14 w-full rounded-xl border border-border bg-card p-4 text-left shadow-sm transition hover:border-brand-500 active:scale-[0.99]'
+  'min-h-14 w-full rounded-xl border border-border bg-card p-4 text-left shadow-sm transition duration-200 ease-out hover:-translate-y-0.5 hover:border-brand-500 hover:shadow-md active:translate-y-0 active:scale-[0.99] motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100'

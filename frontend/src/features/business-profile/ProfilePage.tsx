@@ -2,17 +2,19 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { getProfile, updateProfile } from '../catalog/businessApi'
 import type { Business } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
+import { ChangePasswordCard } from '../auth/ChangePasswordCard'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
-import { Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
+import { Badge, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
 export function ProfilePage() {
   const [profile, setProfile] = useState<Business | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [toggling, setToggling] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -49,6 +51,27 @@ export function ProfilePage() {
     }
   }
 
+  async function toggleOpenClosed() {
+    if (!profile) return
+    const next = profile.status === 'suspended' ? 'active' : 'suspended'
+    setError(null)
+    setSuccess(null)
+    setToggling(true)
+    try {
+      const updated = await updateProfile({ status: next })
+      setProfile({ ...profile, ...updated })
+      setSuccess(
+        next === 'suspended'
+          ? 'Negocio cerrado: la vitrina pública no acepta reservas. Sigues en el panel.'
+          : 'Negocio abierto: la vitrina pública vuelve a aceptar reservas.',
+      )
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setToggling(false)
+    }
+  }
+
   if (loading) {
     return <PageLoading />
   }
@@ -56,7 +79,7 @@ export function ProfilePage() {
   if (!profile) {
     return (
       <div>
-        <PageHeader title="Perfil del negocio" subtitle="Nombre, slug y políticas" />
+        <PageHeader title="Ajustes" subtitle="Negocio, disponibilidad y contraseña" />
         {error ? (
           <div className="mb-3">
             <Alert>{error}</Alert>
@@ -72,13 +95,38 @@ export function ProfilePage() {
     )
   }
 
+  const isOpen = profile.status !== 'suspended'
+
   return (
     <div>
-      <PageHeader title="Perfil del negocio" subtitle="Nombre, slug y políticas" />
+      <PageHeader title="Ajustes" subtitle="Negocio, disponibilidad y contraseña" />
       {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
       {success ? <div className="mb-3"><Alert tone="success">{success}</Alert></div> : null}
-      <Card>
-        <form className="max-w-lg space-y-4" onSubmit={onSubmit}>
+
+      <Card className="mb-4 max-w-lg space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-ink">Estado de la vitrina</p>
+            <p className="mt-1 text-xs text-pretty text-muted">
+              Cerrar solo afecta reservas públicas. No bloquea tu acceso al panel.
+            </p>
+          </div>
+          <Badge tone={isOpen ? 'success' : 'warning'}>
+            {isOpen ? 'Abierto' : 'Cerrado'}
+          </Badge>
+        </div>
+        <Button
+          variant={isOpen ? 'danger' : 'primary'}
+          className="w-full sm:w-auto"
+          disabled={toggling}
+          onClick={() => void toggleOpenClosed()}
+        >
+          {toggling ? 'Actualizando…' : isOpen ? 'Cerrar negocio' : 'Abrir negocio'}
+        </Button>
+      </Card>
+
+      <Card className="mb-4 max-w-lg">
+        <form className="space-y-4" onSubmit={onSubmit}>
           <div>
             <Label>Nombre</Label>
             <Input
@@ -113,10 +161,12 @@ export function ProfilePage() {
             />
           </div>
           <Button type="submit" className="w-full sm:w-auto">
-            Guardar
+            Guardar perfil
           </Button>
         </form>
       </Card>
+
+      <ChangePasswordCard />
     </div>
   )
 }

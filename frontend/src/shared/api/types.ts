@@ -33,7 +33,7 @@ export interface AuthTokenResponse {
   expires_in: number
   scope: AuthScope
   business_id?: string
-  user?: { id: string; email: string }
+  user?: { id: string; email: string; document?: string | null }
   business?: { id: string; name: string; slug: string }
 }
 
@@ -43,8 +43,11 @@ export interface Business {
   slug: string
   timezone?: string
   status?: BusinessStatus
-  /** OpenAPI: cancellation_min_hours */
   cancellation_min_hours?: number
+  manager_document?: string | null
+  suspended_at?: string | null
+  suspension_reason?: string | null
+  manager?: { id: string; email: string; document?: string | null } | null
 }
 
 export interface Service {
@@ -122,29 +125,100 @@ export interface PublicBusiness extends Business {
   services?: Service[]
 }
 
+export interface DashboardAlert {
+  code: string
+  message: string
+  professional_ids?: string[]
+}
+
 export interface BusinessDashboard {
   appointments_today?: number
+  appointments_tomorrow?: number
+  upcoming_next_24h?: number
   confirmed_this_week?: number
+  cancelled_this_week?: number
+  completed_this_week?: number
+  no_show_this_week?: number
+  no_show_rate_week?: number
+  cancellation_rate_week?: number
+  public_bookings_week?: number
+  staff_bookings_week?: number
   by_status?: Record<string, number>
   by_professional_today?: Array<{
     professional_id: string
     name: string
     appointments: number
   }>
+  top_services_week?: Array<{ service_id: string; name: string; count: number }>
+  top_clients_week?: Array<{
+    client_id: string
+    name: string
+    phone?: string
+    count: number
+  }>
+  catalog?: {
+    professionals_total: number
+    professionals_active: number
+    professionals_inactive: number
+    services_total: number
+    services_active: number
+  }
+  alerts?: DashboardAlert[]
 }
 
 export interface PlatformDashboard {
   businesses_active?: number
   businesses_suspended?: number
+  businesses_created_last_7_days?: number
   confirmed_appointments_last_7_days?: number
+  cancelled_appointments_last_7_days?: number
+  completed_appointments_last_7_days?: number
+  no_show_appointments_last_7_days?: number
+  avg_bookings_per_active_business_7d?: number
+  managers_access_locked?: number
+  appointments_by_day_last_7_days?: Array<{ date: string; count: number }>
+  top_businesses_by_bookings_7d?: Array<{
+    id: string
+    name: string
+    slug: string
+    status?: BusinessStatus
+    count: number
+  }>
   recent_businesses?: Array<{
     id: string
     name: string
     slug: string
+    status?: BusinessStatus
     created_at: string
   }>
 }
 
+export interface PlatformLogItem {
+  time?: string
+  level?: string
+  msg?: string
+  message?: string
+  requestId?: string
+  [key: string]: unknown
+}
+
+export interface PlatformLogViewer {
+  total: number
+  buffer_size: number
+  buffer_capacity: number
+  items: PlatformLogItem[]
+}
+
+export interface PlatformHealth {
+  status: string
+  service: string
+  uptime_seconds: number
+  database: string
+  log_buffer_size: number
+  timestamp: string
+}
+
 export interface OkTrue {
   ok: boolean
+  user_id?: string
 }

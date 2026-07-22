@@ -1,4 +1,4 @@
-# Frontend API Contract (aligned with Turnify OpenAPI 1.0.0)
+# Frontend API Contract (aligned with Turnify backend MVP docs 10/11)
 
 Base: `VITE_API_BASE_URL` + `/api/v1`  
 Auth: `Authorization: Bearer <access_token>`  
@@ -10,9 +10,12 @@ Errors: `{ "error": { "code": string, "message": string, "details": object } }`
 
 | Method | Path | Auth | Body / notes |
 |--------|------|------|--------------|
-| POST | `/register` | No | `{ email, password, business: { name, slug } }` → 201 `AuthRegisterResponse` (token + user + business) |
-| POST | `/login` | No | `{ email, password }` → `TokenResponse` |
+| POST | `/register` | No | `{ email, password, document, business: { name, slug } }` → 201 token + user + business |
+| POST | `/login` | No | `{ email, password }` → `TokenResponse` (may 403 `ACCESS_DISABLED`) |
 | GET | `/me` | Bearer | `{ user_id, email, scope, business_id? }` |
+| POST | `/forgot-password` | No | `{ email }` → `{ ok }` (+ `reset_token` in non-prod) |
+| POST | `/reset-password` | No | `{ token, password }` → `{ ok }` |
+| POST | `/change-password` | Bearer | `{ current_password, new_password }` → `{ ok }` |
 
 Post-login routing: `scope === "platform"` → `/platform`; `scope === "business"` → `/app`.
 
@@ -20,47 +23,35 @@ Post-login routing: `scope === "platform"` → `/platform`; `scope === "business
 
 | Method | Path | Notes |
 |--------|------|-------|
-| GET | `/businesses/:slug` | `PublicStorefront` (Business + services) |
+| GET | `/businesses/:slug` | Storefront (+ `403 BUSINESS_SUSPENDED`) |
 | GET | `/businesses/:slug/services` | `Service[]` |
 | GET | `/businesses/:slug/services/:serviceId/professionals` | `Professional[]` |
-| GET | `/businesses/:slug/professionals/:professionalId/services/:serviceId/slots?date=YYYY-MM-DD` | **`AvailableSlots`**: `{ date, professional_id, service_id, slots: [{ starts_at, ends_at }] }` |
-| POST | `/businesses/:slug/appointments` | Optional header `Idempotency-Key` |
+| GET | `.../slots?date=YYYY-MM-DD` | `{ date, professional_id, service_id, slots[] }` |
+| POST | `/businesses/:slug/appointments` | Header `Idempotency-Key`; may `403 CLIENT_BLOCKED` |
 | POST | `/appointments/:appointmentId/cancel` | Body `{ phone }` |
-
-Reserve body:
-
-```json
-{
-  "professional_id": "uuid",
-  "service_id": "uuid",
-  "starts_at": "2026-07-21T15:00:00.000Z",
-  "client": { "name": "...", "phone": "...", "email": null }
-}
-```
 
 ## Business — `/api/v1/business` (JWT scope=business)
 
-Profile fields: `name`, `slug`, `status`, **`cancellation_min_hours`**, `timezone` (GET).  
-PATCH profile allows: `name`, `slug`, `cancellation_min_hours`, `status` (not timezone).
+Profile: GET/PATCH `name`, `slug`, `cancellation_min_hours`, `status` (`active`\|`suspended` = abrir/cerrar vitrina; **no** bloquea login).
 
-Professional offerings:
-- GET `/professionals/:id/services` → **`Service[]`**
-- PUT body `{ service_ids: uuid[] }` → **`Service[]`**
+Dashboard: KPIs enriquecidos + `alerts[]`.
 
-Weekly schedule: `{ slots: [{ day_of_week: 1-7 (Mon–Sun), start_time, end_time }] }`
+Professionals: CRUD + `POST .../block` `{ cancel_future? }` / `POST .../unblock`.
 
-Availability exceptions:
-- Body/response use **`starts_at` / `ends_at`** (date-time) + `type`: `block` | `extra_open`
-- DELETE → `{ ok: true }`
+Clients: list/PATCH (`name`, `phone`, `email`) + `POST .../block` / `unblock` (no `active` en PATCH).
 
-Appointments list/clients list: `{ total, items }`.
-
-Client PATCH: `name`, `phone`, `email` (no `active` in body).
+Appointments: list/create + cancel / reschedule / complete / no-show.
 
 ## Platform — `/api/v1/platform` (JWT scope=platform)
 
-Dashboard, businesses list/create/detail, PATCH status (`active`|`suspended` → `{ id, status }`), POST manager `{ user_id }` → `{ ok: true }`.
+| Area | Notes |
+|------|-------|
+| Dashboard | Activos/suspendidos, altas 7d, citas por estado, serie diaria, tops, `managers_access_locked` |
+| Businesses | Create may include `manager_document`; detail includes manager + suspension fields |
+| Status | `PATCH .../status` `{ status, reason? }` — baja en cascada (`ACCESS_DISABLED` a gerentes) |
+| Managers | `POST /managers` (sin membresía); `POST .../manager` con `document` \| `user_id` \| create+assign |
+| Ops | `GET /log-viewer`, `GET /health` |
 
 ## Error codes to map in UI
 
-`VALIDATION_ERROR`, `UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `FORBIDDEN`, `BUSINESS_SUSPENDED`, `NOT_FOUND`, `SLOT_OCCUPIED`, `PROFESSIONAL_INACTIVE`, `INVALID_STATE_TRANSITION`, `SLUG_ALREADY_EXISTS`, `CONFLICT`, `OUTSIDE_AVAILABILITY`, `CANCELLATION_TOO_LATE`, `CLIENT_APPOINTMENT_LIMIT`, `INTERNAL_ERROR`.
+`VALIDATION_ERROR`, `UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `FORBIDDEN`, `ACCESS_DISABLED`, `BUSINESS_SUSPENDED`, `CLIENT_BLOCKED`, `NOT_FOUND`, `SLOT_OCCUPIED`, `PROFESSIONAL_INACTIVE`, `INVALID_STATE_TRANSITION`, `SLUG_ALREADY_EXISTS`, `CONFLICT`, `OUTSIDE_AVAILABILITY`, `CANCELLATION_TOO_LATE`, `CLIENT_APPOINTMENT_LIMIT`, `INTERNAL_ERROR`.

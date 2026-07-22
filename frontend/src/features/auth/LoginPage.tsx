@@ -2,13 +2,14 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from './api'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { ApiError } from '../../shared/api/ApiError'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { AuthLayout } from '../../shared/ui/layouts'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
-import { Card } from '../../shared/ui/feedback'
+import { Card, TextLink } from '../../shared/ui/feedback'
 
 export function LoginPage() {
   const { setSessionFromAuth } = useAuth()
@@ -32,7 +33,13 @@ export function LoginPage() {
       })
       navigate(res.scope === 'platform' ? '/platform' : '/app', { replace: true })
     } catch (err) {
-      setError(getErrorMessage(err))
+      if (err instanceof ApiError && err.code === 'ACCESS_DISABLED') {
+        setError(
+          'Tu negocio fue dado de baja. Contacta soporte de la plataforma.',
+        )
+      } else {
+        setError(getErrorMessage(err))
+      }
     } finally {
       setLoading(false)
     }
@@ -70,6 +77,9 @@ export function LoginPage() {
             {loading ? 'Entrando…' : 'Entrar'}
           </Button>
         </form>
+        <p className="mt-3 text-center text-sm">
+          <TextLink to="/forgot-password">¿Olvidaste tu contraseña?</TextLink>
+        </p>
         <p className="mt-4 text-center text-sm text-muted">
           ¿Nuevo negocio?{' '}
           <Link className="font-semibold text-brand-700 hover:text-brand-800" to="/register">

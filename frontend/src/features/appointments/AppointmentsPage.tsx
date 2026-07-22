@@ -227,14 +227,14 @@ export function AppointmentsPage() {
                     className="w-full sm:w-auto"
                     onClick={() => void runAction(a.id, 'complete')}
                   >
-                    Completar
+                    Marcar completada
                   </Button>
                   <Button
                     variant="secondary"
                     className="w-full sm:w-auto"
                     onClick={() => void runAction(a.id, 'no_show')}
                   >
-                    No asistió
+                    Marcar no asistió
                   </Button>
                   <Button
                     variant="secondary"
@@ -248,7 +248,7 @@ export function AppointmentsPage() {
                     className="w-full sm:w-auto"
                     onClick={() => void runAction(a.id, 'cancel')}
                   >
-                    Cancelar
+                    Anular cita
                   </Button>
                 </div>
               ) : null}

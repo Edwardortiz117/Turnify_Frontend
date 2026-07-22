@@ -22,7 +22,7 @@ export function Button({
 }) {
   return (
     <button
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition duration-200 ease-out active:scale-[0.98] motion-reduce:active:scale-100 ${variants[variant]} ${className}`}
       {...props}
     >
       {children}
