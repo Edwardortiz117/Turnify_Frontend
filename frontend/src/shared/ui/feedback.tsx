@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from './Button'
 
 export function EmptyState({
@@ -13,9 +14,11 @@ export function EmptyState({
   onAction?: () => void
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-border bg-white/70 px-4 py-10 text-center sm:px-6 sm:py-12">
-      <h3 className="font-display text-lg text-ink sm:text-xl">{title}</h3>
-      {description ? <p className="mx-auto mt-2 max-w-md text-sm text-muted">{description}</p> : null}
+    <div className="rounded-xl border border-dashed border-border bg-card/70 px-4 py-10 text-center sm:px-6 sm:py-12">
+      <h3 className="font-display text-lg text-balance text-ink sm:text-xl">{title}</h3>
+      {description ? (
+        <p className="mx-auto mt-2 max-w-md text-sm text-pretty text-muted">{description}</p>
+      ) : null}
       {actionLabel && onAction ? (
         <div className="mt-5">
           <Button className="w-full sm:w-auto" onClick={onAction}>
@@ -36,6 +39,41 @@ export function Spinner() {
   )
 }
 
+export function PageLoading() {
+  return (
+    <div className="flex justify-center py-16" aria-busy="true" aria-live="polite">
+      <Spinner />
+    </div>
+  )
+}
+
+export function BrandEyebrow({ children = 'Turnify' }: { children?: ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-wide text-brand-700 sm:text-sm">
+      {children}
+    </p>
+  )
+}
+
+export function TextLink({
+  to,
+  children,
+  className = '',
+}: {
+  to: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <Link
+      to={to}
+      className={`text-sm font-semibold text-brand-700 hover:text-brand-800 ${className}`}
+    >
+      {children}
+    </Link>
+  )
+}
+
 export function PageHeader({
   title,
   subtitle,
@@ -48,8 +86,10 @@ export function PageHeader({
   return (
     <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
       <div className="min-w-0">
-        <h1 className="font-display text-2xl tracking-tight text-ink sm:text-3xl">{title}</h1>
-        {subtitle ? <p className="mt-1 text-sm text-muted">{subtitle}</p> : null}
+        <h1 className="font-display text-2xl tracking-tight text-balance text-ink sm:text-3xl">
+          {title}
+        </h1>
+        {subtitle ? <p className="mt-1 text-sm text-pretty text-muted">{subtitle}</p> : null}
       </div>
       {actions ? (
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
@@ -90,3 +130,7 @@ export function Badge({
     </span>
   )
 }
+
+/** Shared class for selectable list rows (services, professionals). */
+export const selectableCardClass =
+  'min-h-14 w-full rounded-xl border border-border bg-card p-4 text-left shadow-sm transition hover:border-brand-500 active:scale-[0.99]'

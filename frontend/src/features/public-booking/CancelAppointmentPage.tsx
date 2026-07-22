@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { cancelPublicAppointment } from './api'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { PublicLayout } from '../../shared/ui/layouts'
@@ -7,7 +7,7 @@ import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
-import { Card } from '../../shared/ui/feedback'
+import { Card, TextLink } from '../../shared/ui/feedback'
 
 export function CancelAppointmentPage() {
   const { appointmentId = '' } = useParams()
@@ -33,16 +33,19 @@ export function CancelAppointmentPage() {
   return (
     <PublicLayout>
       <Card>
-        <h1 className="font-display text-2xl">Cancelar cita</h1>
-        <p className="mt-1 text-sm text-muted">
+        <h1 className="font-display text-2xl text-balance text-ink">Cancelar cita</h1>
+        <p className="mt-1 text-sm text-pretty text-muted">
           Confirma con el teléfono usado en la reserva.
         </p>
         {done ? (
-          <div className="mt-4 space-y-3">
-            <Alert tone="success">Tu cita fue cancelada.</Alert>
-            <Link className="text-sm font-semibold text-brand-700" to="/">
-              Volver al inicio
-            </Link>
+          <div className="mt-4 space-y-3 text-center sm:text-left">
+            <h2 className="font-display text-2xl text-balance text-brand-800">
+              Cita cancelada
+            </h2>
+            <p className="text-sm text-pretty text-muted">
+              Tu cita fue cancelada correctamente.
+            </p>
+            <TextLink to="/">Volver al inicio</TextLink>
           </div>
         ) : (
           <form className="mt-4 space-y-4" onSubmit={onSubmit}>

@@ -11,7 +11,7 @@ import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
-import { Badge, Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
+import { Badge, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
 export function ServicesPage() {
   const [items, setItems] = useState<Service[]>([])
@@ -73,7 +73,7 @@ export function ServicesPage() {
         </form>
       </Card>
       {loading ? (
-        <Spinner />
+        <PageLoading />
       ) : items.length === 0 ? (
         <EmptyState title="Sin servicios" description="Crea el primero para publicar tu oferta." />
       ) : (

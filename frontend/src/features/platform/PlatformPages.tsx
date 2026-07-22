@@ -15,7 +15,7 @@ import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
-import { Badge, Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
+import { Badge, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
 export function PlatformDashboardPage() {
   const [data, setData] = useState<PlatformDashboard | null>(null)
@@ -29,7 +29,7 @@ export function PlatformDashboardPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex justify-center py-16"><Spinner /></div>
+  if (loading) return <PageLoading />
 
   return (
     <div>
@@ -42,19 +42,27 @@ export function PlatformDashboardPage() {
           </Link>
         }
       />
-      {error ? <Alert>{error}</Alert> : null}
+      {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
-          <p className="text-xs uppercase text-muted">Negocios activos</p>
-          <p className="mt-2 text-2xl font-semibold">{data?.businesses_active ?? 0}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+            Negocios activos
+          </p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums">
+            {data?.businesses_active ?? 0}
+          </p>
         </Card>
         <Card>
-          <p className="text-xs uppercase text-muted">Suspendidos</p>
-          <p className="mt-2 text-2xl font-semibold">{data?.businesses_suspended ?? 0}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Suspendidos</p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums">
+            {data?.businesses_suspended ?? 0}
+          </p>
         </Card>
         <Card>
-          <p className="text-xs uppercase text-muted">Citas confirmadas (7 días)</p>
-          <p className="mt-2 text-2xl font-semibold">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+            Citas confirmadas (7 días)
+          </p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums">
             {data?.confirmed_appointments_last_7_days ?? 0}
           </p>
         </Card>
@@ -69,7 +77,7 @@ export function PlatformDashboardPage() {
                   {b.name}{' '}
                   <span className="text-muted">/{b.slug}</span>
                 </span>
-                <span className="text-muted">{formatInTimeZone(b.created_at)}</span>
+                <span className="text-muted tabular-nums">{formatInTimeZone(b.created_at)}</span>
               </li>
             ))}
           </ul>
@@ -124,8 +132,13 @@ export function PlatformBusinessesPage() {
       <Card className="mb-4">
         <form className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap" onSubmit={onCreate}>
           <div className="min-w-0 flex-1 sm:min-w-[160px]">
-            <Label>Nombre</Label>
-            <Input required value={name} onChange={(e) => setName(e.target.value)} />
+            <Label htmlFor="platform-business-name">Nombre</Label>
+            <Input
+              id="platform-business-name"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
           <div className="min-w-0 flex-1 sm:min-w-[140px]">
             <Label>Slug</Label>
@@ -137,9 +150,16 @@ export function PlatformBusinessesPage() {
         </form>
       </Card>
       {loading ? (
-        <Spinner />
+        <PageLoading />
       ) : items.length === 0 ? (
-        <EmptyState title="Sin negocios" />
+        <EmptyState
+          title="Sin negocios"
+          description="Crea el primero para administrar tenants."
+          actionLabel="Crear negocio"
+          onAction={() => {
+            document.getElementById('platform-business-name')?.focus()
+          }}
+        />
       ) : (
         <div className="space-y-2">
           {items.map((b) => (
@@ -212,7 +232,7 @@ export function PlatformBusinessDetailPage() {
     }
   }
 
-  if (loading) return <Spinner />
+  if (loading) return <PageLoading />
   if (!business) return <EmptyState title="Negocio no encontrado" description={error ?? undefined} />
 
   return (

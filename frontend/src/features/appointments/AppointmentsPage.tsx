@@ -18,7 +18,7 @@ import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
 import { Select } from '../../shared/ui/Select'
-import { Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
+import { Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
 export function AppointmentsPage() {
   const [from, setFrom] = useState(toDateInputValue())
@@ -196,7 +196,7 @@ export function AppointmentsPage() {
       ) : null}
 
       {loading ? (
-        <div className="flex justify-center py-10"><Spinner /></div>
+        <PageLoading />
       ) : items.length === 0 ? (
         <EmptyState
           title="Sin citas en este período"

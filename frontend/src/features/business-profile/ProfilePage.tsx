@@ -6,7 +6,7 @@ import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
-import { Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
+import { Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
 export function ProfilePage() {
   const [profile, setProfile] = useState<Business | null>(null)
@@ -50,11 +50,7 @@ export function ProfilePage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-16">
-        <Spinner />
-      </div>
-    )
+    return <PageLoading />
   }
 
   if (!profile) {

@@ -57,7 +57,7 @@ export function RegisterPage() {
   return (
     <AuthLayout>
       <Card>
-        <h1 className="mb-4 text-lg font-semibold">Registrar negocio</h1>
+        <h1 className="mb-4 font-display text-2xl text-balance text-ink">Registrar negocio</h1>
         {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
         <form className="space-y-4" onSubmit={onSubmit}>
           <div>
@@ -113,7 +113,7 @@ export function RegisterPage() {
         </form>
         <p className="mt-4 text-center text-sm text-muted">
           ¿Ya tienes cuenta?{' '}
-          <Link className="font-semibold text-brand-700" to="/login">
+          <Link className="font-semibold text-brand-700 hover:text-brand-800" to="/login">
             Iniciar sesión
           </Link>
         </p>

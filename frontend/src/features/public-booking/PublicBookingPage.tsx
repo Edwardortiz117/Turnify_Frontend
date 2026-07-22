@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
   createPublicAppointment,
   getBusinessBySlug,
@@ -16,7 +16,16 @@ import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
-import { Card, EmptyState, Spinner } from '../../shared/ui/feedback'
+import {
+  BrandEyebrow,
+  Card,
+  EmptyState,
+  PageLoading,
+  selectableCardClass,
+  Spinner,
+  TextLink,
+} from '../../shared/ui/feedback'
+import { WizardSteps } from '../../shared/ui/WizardSteps'
 
 type Step = 'service' | 'professional' | 'slot' | 'contact' | 'done'
 
@@ -158,7 +167,7 @@ export function PublicBookingPage() {
   if (loading) {
     return (
       <PublicLayout>
-        <div className="flex justify-center py-20"><Spinner /></div>
+        <PageLoading />
       </PublicLayout>
     )
   }
@@ -182,36 +191,22 @@ export function PublicBookingPage() {
     )
   }
 
+  const wizardIndex = ['service', 'professional', 'slot', 'contact'].indexOf(step)
+
   return (
     <PublicLayout>
       <header className="mb-6 sm:mb-8">
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand-700 sm:text-sm">
-          Turnify
+        <BrandEyebrow />
+        <h1 className="mt-1 font-display text-3xl text-balance text-ink sm:text-4xl">
+          {business.name}
+        </h1>
+        <p className="mt-2 text-sm text-pretty text-muted sm:text-base">
+          Reserva tu cita en pocos pasos.
         </p>
-        <h1 className="mt-1 font-display text-3xl text-ink sm:text-4xl">{business.name}</h1>
-        <p className="mt-2 text-sm text-muted sm:text-base">Reserva tu cita en pocos pasos.</p>
       </header>
 
-      {step !== 'done' ? (
-        <ol className="mb-6 grid grid-cols-4 gap-1 sm:gap-2">
-          {stepsLabel.map((label, i) => {
-            const active = i <= ['service', 'professional', 'slot', 'contact'].indexOf(step)
-            return (
-              <li
-                key={label}
-                className={`rounded-lg px-1 py-2 text-center text-[10px] font-semibold sm:rounded-full sm:px-3 sm:py-1.5 sm:text-xs ${
-                  active ? 'bg-brand-100 text-brand-800' : 'bg-white text-slate-400'
-                }`}
-              >
-                <span className="sm:hidden">{i + 1}</span>
-                <span className="hidden sm:inline">
-                  {i + 1}. {label}
-                </span>
-                <span className="mt-0.5 block truncate sm:hidden">{label}</span>
-              </li>
-            )
-          })}
-        </ol>
+      {step !== 'done' && wizardIndex >= 0 ? (
+        <WizardSteps steps={stepsLabel} activeIndex={wizardIndex} />
       ) : null}
 
       {error && error !== 'BUSINESS_SUSPENDED' ? (
@@ -227,7 +222,7 @@ export function PublicBookingPage() {
               <button
                 key={s.id}
                 type="button"
-                className="min-h-14 w-full rounded-xl border border-border bg-white p-4 text-left shadow-sm transition hover:border-brand-500 active:scale-[0.99]"
+                className={selectableCardClass}
                 onClick={() => {
                   setService(s)
                   setProfessional(null)
@@ -255,7 +250,7 @@ export function PublicBookingPage() {
             <button
               key={p.id}
               type="button"
-              className="min-h-14 w-full rounded-xl border border-border bg-white p-4 text-left shadow-sm hover:border-brand-500 active:scale-[0.99]"
+              className={selectableCardClass}
               onClick={() => {
                 setProfessional(p)
                 setStep('slot')
@@ -297,10 +292,10 @@ export function PublicBookingPage() {
                 <button
                   key={s.starts_at}
                   type="button"
-                  className={`min-h-11 rounded-lg border px-2 py-2.5 text-sm font-medium ${
+                  className={`min-h-11 rounded-lg border px-2 py-2.5 text-sm font-medium tabular-nums ${
                     slot?.starts_at === s.starts_at
                       ? 'border-brand-600 bg-brand-100 text-brand-800'
-                      : 'border-border bg-white hover:border-brand-400'
+                      : 'border-border bg-card hover:border-brand-400'
                   }`}
                   onClick={() => {
                     setSlot(s)
@@ -358,20 +353,15 @@ export function PublicBookingPage() {
 
       {step === 'done' && appointmentId ? (
         <Card className="text-center">
-          <h2 className="font-display text-2xl text-brand-800">¡Cita confirmada!</h2>
-          <p className="mt-2 text-sm text-muted">
+          <h2 className="font-display text-2xl text-balance text-brand-800">¡Cita confirmada!</h2>
+          <p className="mt-2 text-sm text-pretty text-muted">
             Guarda este código: <span className="font-mono text-ink">{appointmentId}</span>
           </p>
           {slot ? (
-            <p className="mt-3 font-medium">{formatInTimeZone(slot.starts_at, tz)}</p>
+            <p className="mt-3 font-medium tabular-nums">{formatInTimeZone(slot.starts_at, tz)}</p>
           ) : null}
           <div className="mt-6">
-            <Link
-              className="text-sm font-semibold text-brand-700 underline"
-              to={`/cancel/${appointmentId}`}
-            >
-              ¿Necesitas cancelar?
-            </Link>
+            <TextLink to={`/cancel/${appointmentId}`}>¿Necesitas cancelar?</TextLink>
           </div>
         </Card>
       ) : null}

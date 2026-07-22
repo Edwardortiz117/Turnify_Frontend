@@ -15,7 +15,7 @@ import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
 import { Select } from '../../shared/ui/Select'
-import { Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
+import { Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
 /** OpenAPI: day_of_week 1=Mon … 7=Sun */
 const DAY_LABELS: Record<number, string> = {
@@ -109,7 +109,7 @@ export function AvailabilityPage() {
     }
   }
 
-  if (loading) return <Spinner />
+  if (loading) return <PageLoading />
 
   if (professionals.length === 0) {
     return (
@@ -139,7 +139,7 @@ export function AvailabilityPage() {
           {slots.map((slot, idx) => (
             <div
               key={`${slot.day_of_week}-${idx}`}
-              className="grid grid-cols-1 gap-2 rounded-lg border border-border/70 p-3 sm:flex sm:flex-wrap sm:items-center sm:border-0 sm:p-0"
+              className="grid grid-cols-1 gap-2 py-3 sm:flex sm:flex-wrap sm:items-center sm:py-0 [&:not(:last-of-type)]:border-b [&:not(:last-of-type)]:border-border/60 sm:[&:not(:last-of-type)]:border-0"
             >
               <Select
                 className="w-full sm:w-24"
@@ -241,11 +241,11 @@ export function AvailabilityPage() {
             Agregar
           </Button>
         </form>
-        <ul className="space-y-2">
+        <ul className="divide-y divide-border/60">
           {exceptions.map((ex) => (
             <li
               key={ex.id}
-              className="flex flex-col gap-2 rounded-lg border border-border/60 p-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:p-0"
+              className="flex flex-col gap-2 py-3 text-sm first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
             >
               <span className="min-w-0 break-words">
                 {formatInTimeZone(ex.starts_at)} – {formatInTimeZone(ex.ends_at)} ·{' '}

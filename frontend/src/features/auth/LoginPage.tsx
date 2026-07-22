@@ -41,7 +41,7 @@ export function LoginPage() {
   return (
     <AuthLayout>
       <Card>
-        <h1 className="mb-4 text-lg font-semibold">Iniciar sesión</h1>
+        <h1 className="mb-4 font-display text-2xl text-balance text-ink">Iniciar sesión</h1>
         {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
         <form className="space-y-4" onSubmit={onSubmit}>
           <div>
@@ -72,7 +72,7 @@ export function LoginPage() {
         </form>
         <p className="mt-4 text-center text-sm text-muted">
           ¿Nuevo negocio?{' '}
-          <Link className="font-semibold text-brand-700" to="/register">
+          <Link className="font-semibold text-brand-700 hover:text-brand-800" to="/register">
             Crear cuenta
           </Link>
         </p>

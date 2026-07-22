@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
+import { PublicLayout } from '../../shared/ui/layouts'
+import { Alert } from '../../shared/ui/Alert'
+import { BrandEyebrow, Card } from '../../shared/ui/feedback'
 
 function slugify(value: string) {
   return value
@@ -42,14 +45,12 @@ export function HomePage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center px-4 py-12 sm:px-6 sm:py-16">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700 sm:text-sm">
-        Turnify
-      </p>
-      <h1 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl lg:text-6xl">
+    <PublicLayout wide center>
+      <BrandEyebrow />
+      <h1 className="mt-3 font-display text-4xl leading-tight text-balance text-ink sm:text-5xl lg:text-6xl">
         Citas claras para negocios de Cúcuta
       </h1>
-      <p className="mt-4 max-w-xl text-base text-muted sm:text-lg">
+      <p className="mt-4 max-w-xl text-base text-pretty text-muted sm:text-lg">
         Configura tu oferta, comparte tu enlace y opera la agenda sin fricción.
       </p>
       <div className="mt-8 flex w-full flex-col gap-3 sm:max-w-md sm:flex-row sm:flex-wrap">
@@ -63,49 +64,48 @@ export function HomePage() {
         </Link>
       </div>
 
-      <form
-        className="mt-10 w-full max-w-md space-y-3 rounded-xl border border-border bg-white/80 p-4 sm:p-5"
-        onSubmit={goToBooking}
-      >
-        <div>
-          <Label htmlFor="home-slug">Reservar en un negocio</Label>
-          <p className="mt-1 text-xs text-muted">
-            Ingresa el slug y te llevamos a su página de citas.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-          <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border border-border bg-white focus-within:ring-2 focus-within:ring-brand-500">
-            <span className="flex items-center bg-slate-50 px-3 font-mono text-sm text-muted">
-              /
-            </span>
-            <Input
-              id="home-slug"
-              className="rounded-none border-0 focus:ring-0"
-              placeholder="tu-negocio"
-              value={slug}
-              onChange={(e) => {
-                setSlug(slugify(e.target.value))
-                setError(null)
-              }}
-              autoComplete="off"
-              inputMode="text"
-            />
+      <Card className="mt-10 w-full max-w-md space-y-3 bg-card/80">
+        <form className="space-y-3" onSubmit={goToBooking}>
+          <div>
+            <Label htmlFor="home-slug">Reservar en un negocio</Label>
+            <p className="mt-1 text-xs text-muted">
+              Ingresa el slug y te llevamos a su página de citas.
+            </p>
           </div>
-          <Button type="submit" className="w-full shrink-0 sm:w-auto">
-            Ir a reservar
-          </Button>
-        </div>
-        {slug ? (
-          <p className="text-xs text-muted">
-            Redirigirá a{' '}
-            <span className="font-mono text-brand-800">/{slug}</span>
-          </p>
-        ) : null}
-        {error ? <p className="text-sm text-danger">{error}</p> : null}
-        {remembered && remembered === slug ? (
-          <p className="text-xs text-muted">Usamos el último negocio que visitaste.</p>
-        ) : null}
-      </form>
-    </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+            <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border border-border bg-card focus-within:ring-2 focus-within:ring-brand-500">
+              <span className="flex items-center bg-slate-50 px-3 font-mono text-sm text-muted">
+                /
+              </span>
+              <Input
+                id="home-slug"
+                className="rounded-none border-0 focus:ring-0"
+                placeholder="tu-negocio"
+                value={slug}
+                onChange={(e) => {
+                  setSlug(slugify(e.target.value))
+                  setError(null)
+                }}
+                autoComplete="off"
+                inputMode="text"
+              />
+            </div>
+            <Button type="submit" className="w-full shrink-0 sm:w-auto">
+              Ir a reservar
+            </Button>
+          </div>
+          {slug ? (
+            <p className="text-xs text-muted">
+              Redirigirá a{' '}
+              <span className="font-mono text-brand-800">/{slug}</span>
+            </p>
+          ) : null}
+          {error ? <Alert>{error}</Alert> : null}
+          {remembered && remembered === slug ? (
+            <p className="text-xs text-muted">Usamos el último negocio que visitaste.</p>
+          ) : null}
+        </form>
+      </Card>
+    </PublicLayout>
   )
 }

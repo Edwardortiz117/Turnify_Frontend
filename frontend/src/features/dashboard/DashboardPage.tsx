@@ -5,7 +5,7 @@ import type { BusinessDashboard } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
-import { Card, PageHeader, Spinner } from '../../shared/ui/feedback'
+import { Card, PageHeader, PageLoading, TextLink } from '../../shared/ui/feedback'
 
 export function DashboardPage() {
   const [data, setData] = useState<BusinessDashboard | null>(null)
@@ -33,7 +33,7 @@ export function DashboardPage() {
     }
   }, [])
 
-  if (loading) return <div className="flex justify-center py-16"><Spinner /></div>
+  if (loading) return <PageLoading />
 
   return (
     <div>
@@ -46,30 +46,34 @@ export function DashboardPage() {
           </Link>
         }
       />
-      {error ? <Alert>{error}</Alert> : null}
+      {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
       {slug ? (
         <Card className="mb-4">
           <p className="text-sm text-muted">Enlace de reserva pública</p>
           <p className="mt-1 font-mono text-brand-800">/{slug}</p>
-          <Link className="mt-2 inline-block text-sm font-semibold text-brand-700" to={`/${slug}`}>
+          <TextLink className="mt-2 inline-block" to={`/${slug}`}>
             Abrir vitrina
-          </Link>
+          </TextLink>
         </Card>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
-          <p className="text-xs uppercase tracking-wide text-muted">Citas hoy</p>
-          <p className="mt-2 text-2xl font-semibold">{data?.appointments_today ?? 0}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Citas hoy</p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums">{data?.appointments_today ?? 0}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-wide text-muted">Confirmadas esta semana</p>
-          <p className="mt-2 text-2xl font-semibold">{data?.confirmed_this_week ?? 0}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+            Confirmadas esta semana
+          </p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums">
+            {data?.confirmed_this_week ?? 0}
+          </p>
         </Card>
         {data?.by_status
           ? Object.entries(data.by_status).map(([status, count]) => (
               <Card key={status}>
-                <p className="text-xs uppercase tracking-wide text-muted">{status}</p>
-                <p className="mt-2 text-2xl font-semibold">{count}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">{status}</p>
+                <p className="mt-2 text-2xl font-semibold tabular-nums">{count}</p>
               </Card>
             ))
           : null}
@@ -79,9 +83,9 @@ export function DashboardPage() {
           <h2 className="mb-3 font-semibold">Por profesional (hoy)</h2>
           <ul className="space-y-2 text-sm">
             {data.by_professional_today.map((row) => (
-              <li key={row.professional_id} className="flex justify-between">
-                <span>{row.name}</span>
-                <span className="font-semibold">{row.appointments}</span>
+              <li key={row.professional_id} className="flex justify-between gap-3">
+                <span className="min-w-0 truncate">{row.name}</span>
+                <span className="font-semibold tabular-nums">{row.appointments}</span>
               </li>
             ))}
           </ul>

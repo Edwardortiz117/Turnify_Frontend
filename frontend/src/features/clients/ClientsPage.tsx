@@ -6,7 +6,7 @@ import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
-import { Card, EmptyState, PageHeader, Spinner } from '../../shared/ui/feedback'
+import { Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
 export function ClientsPage() {
   const [q, setQ] = useState('')
@@ -69,7 +69,7 @@ export function ClientsPage() {
         </Button>
       </form>
       {loading ? (
-        <Spinner />
+        <PageLoading />
       ) : items.length === 0 ? (
         <EmptyState title="Sin clientes" description="Aparecerán al recibir o crear citas." />
       ) : (
