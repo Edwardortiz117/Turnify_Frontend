@@ -60,7 +60,7 @@ export function CancelAppointmentPage() {
                 onChange={(e) => setPhone(e.target.value)}
               />
             </div>
-            <Button type="submit" variant="danger" disabled={loading}>
+            <Button type="submit" variant="danger" className="w-full" disabled={loading}>
               {loading ? 'Cancelando…' : 'Cancelar cita'}
             </Button>
           </form>

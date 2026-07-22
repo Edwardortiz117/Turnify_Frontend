@@ -119,14 +119,18 @@ export function AppointmentsPage() {
       <PageHeader
         title="Agenda"
         subtitle="Citas del período seleccionado"
-        actions={<Button onClick={() => setShowForm((v) => !v)}>Nueva cita</Button>}
+        actions={
+          <Button className="w-full sm:w-auto" onClick={() => setShowForm((v) => !v)}>
+            Nueva cita
+          </Button>
+        }
       />
-      <div className="mb-4 flex flex-wrap gap-3">
-        <div>
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
+        <div className="sm:min-w-[10rem]">
           <Label>Desde</Label>
           <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
         </div>
-        <div>
+        <div className="sm:min-w-[10rem]">
           <Label>Hasta</Label>
           <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         </div>
@@ -183,7 +187,9 @@ export function AppointmentsPage() {
               Forzar fuera de disponibilidad
             </label>
             <div className="sm:col-span-2">
-              <Button type="submit">Crear cita</Button>
+              <Button type="submit" className="w-full sm:w-auto">
+                Crear cita
+              </Button>
             </div>
           </form>
         </Card>
@@ -215,17 +221,33 @@ export function AppointmentsPage() {
                 </p>
               </div>
               {a.status === 'confirmed' ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="secondary" onClick={() => void runAction(a.id, 'complete')}>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                  <Button
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                    onClick={() => void runAction(a.id, 'complete')}
+                  >
                     Completar
                   </Button>
-                  <Button variant="secondary" onClick={() => void runAction(a.id, 'no_show')}>
+                  <Button
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                    onClick={() => void runAction(a.id, 'no_show')}
+                  >
                     No asistió
                   </Button>
-                  <Button variant="secondary" onClick={() => void runAction(a.id, 'reschedule')}>
+                  <Button
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                    onClick={() => void runAction(a.id, 'reschedule')}
+                  >
                     Reprogramar
                   </Button>
-                  <Button variant="danger" onClick={() => void runAction(a.id, 'cancel')}>
+                  <Button
+                    variant="danger"
+                    className="w-full sm:w-auto"
+                    onClick={() => void runAction(a.id, 'cancel')}
+                  >
                     Cancelar
                   </Button>
                 </div>

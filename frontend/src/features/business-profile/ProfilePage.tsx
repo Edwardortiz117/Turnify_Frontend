@@ -83,7 +83,9 @@ export function ProfilePage() {
               }
             />
           </div>
-          <Button type="submit">Guardar</Button>
+          <Button type="submit" className="w-full sm:w-auto">
+            Guardar
+          </Button>
         </form>
       </Card>
     </div>

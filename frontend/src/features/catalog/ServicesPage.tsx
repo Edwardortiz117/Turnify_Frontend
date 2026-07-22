@@ -52,12 +52,12 @@ export function ServicesPage() {
       <PageHeader title="Servicios" subtitle="Catálogo que alimenta la reserva" />
       {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
       <Card className="mb-4">
-        <form className="flex flex-wrap items-end gap-3" onSubmit={onCreate}>
-          <div className="min-w-[180px] flex-1">
+        <form className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end" onSubmit={onCreate}>
+          <div className="min-w-0 flex-1 sm:min-w-[180px]">
             <Label>Nombre</Label>
             <Input required value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div className="w-32">
+          <div className="w-full sm:w-32">
             <Label>Duración (min)</Label>
             <Input
               type="number"
@@ -67,7 +67,9 @@ export function ServicesPage() {
               onChange={(e) => setDuration(Number(e.target.value))}
             />
           </div>
-          <Button type="submit">Agregar</Button>
+          <Button type="submit" className="w-full sm:w-auto">
+            Agregar
+          </Button>
         </form>
       </Card>
       {loading ? (
@@ -77,17 +79,18 @@ export function ServicesPage() {
       ) : (
         <div className="space-y-2">
           {items.map((s) => (
-            <Card key={s.id} className="flex flex-wrap items-center justify-between gap-3">
-              <div>
+            <Card key={s.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="font-semibold">{s.name}</p>
                 <p className="text-sm text-muted">{s.duration_minutes} min</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <Badge tone={s.active ? 'success' : 'neutral'}>
                   {s.active ? 'Activo' : 'Inactivo'}
                 </Badge>
                 <Button
                   variant="secondary"
+                  className="w-full sm:w-auto"
                   onClick={() =>
                     void updateService(s.id, { active: !s.active }).then(refresh)
                   }
@@ -96,6 +99,7 @@ export function ServicesPage() {
                 </Button>
                 <Button
                   variant="danger"
+                  className="w-full sm:w-auto"
                   onClick={() => {
                     if (confirm('¿Eliminar servicio?')) void deleteService(s.id).then(refresh)
                   }}

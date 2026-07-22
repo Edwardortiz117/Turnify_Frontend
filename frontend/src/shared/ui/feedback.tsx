@@ -13,12 +13,14 @@ export function EmptyState({
   onAction?: () => void
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-border bg-white/70 px-6 py-12 text-center">
-      <h3 className="font-display text-xl text-ink">{title}</h3>
-      {description ? <p className="mt-2 text-sm text-muted">{description}</p> : null}
+    <div className="rounded-xl border border-dashed border-border bg-white/70 px-4 py-10 text-center sm:px-6 sm:py-12">
+      <h3 className="font-display text-lg text-ink sm:text-xl">{title}</h3>
+      {description ? <p className="mx-auto mt-2 max-w-md text-sm text-muted">{description}</p> : null}
       {actionLabel && onAction ? (
         <div className="mt-5">
-          <Button onClick={onAction}>{actionLabel}</Button>
+          <Button className="w-full sm:w-auto" onClick={onAction}>
+            {actionLabel}
+          </Button>
         </div>
       ) : null}
     </div>
@@ -44,19 +46,25 @@ export function PageHeader({
   actions?: ReactNode
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-      <div>
-        <h1 className="font-display text-3xl tracking-tight text-ink">{title}</h1>
+    <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+      <div className="min-w-0">
+        <h1 className="font-display text-2xl tracking-tight text-ink sm:text-3xl">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-muted">{subtitle}</p> : null}
       </div>
-      {actions}
+      {actions ? (
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+          {actions}
+        </div>
+      ) : null}
     </div>
   )
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border border-border bg-card p-5 shadow-sm ${className}`}>
+    <div
+      className={`rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5 ${className}`}
+    >
       {children}
     </div>
   )

@@ -41,8 +41,8 @@ export function DashboardPage() {
         title="Dashboard"
         subtitle="Resumen de tu negocio"
         actions={
-          <Link to="/app/appointments">
-            <Button>Ir a agenda</Button>
+          <Link to="/app/appointments" className="w-full sm:w-auto">
+            <Button className="w-full">Ir a agenda</Button>
           </Link>
         }
       />

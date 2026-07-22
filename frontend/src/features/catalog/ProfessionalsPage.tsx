@@ -77,12 +77,14 @@ export function ProfessionalsPage() {
       <PageHeader title="Profesionales" subtitle="Quién atiende y qué servicios ofrece" />
       {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
       <Card className="mb-4">
-        <form className="flex flex-wrap gap-3" onSubmit={onCreate}>
-          <div className="min-w-[200px] flex-1">
+        <form className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap" onSubmit={onCreate}>
+          <div className="min-w-0 flex-1 sm:min-w-[200px]">
             <Label>Nombre</Label>
             <Input required value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <Button type="submit" className="self-end">Agregar</Button>
+          <Button type="submit" className="w-full self-end sm:w-auto">
+            Agregar
+          </Button>
         </form>
       </Card>
       {loading ? (
@@ -92,17 +94,22 @@ export function ProfessionalsPage() {
       ) : (
         <div className="space-y-2">
           {items.map((p) => (
-            <Card key={p.id} className="flex flex-wrap items-center justify-between gap-3">
+            <Card key={p.id} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <div>
                 <p className="font-semibold">{p.name}</p>
                 <Badge tone={p.status === 'active' ? 'success' : 'neutral'}>{p.status}</Badge>
               </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => void openOfferings(p.id)}>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  variant="secondary"
+                  className="w-full sm:w-auto"
+                  onClick={() => void openOfferings(p.id)}
+                >
                   Servicios
                 </Button>
                 <Button
                   variant="secondary"
+                  className="w-full sm:w-auto"
                   onClick={() =>
                     void updateProfessional(p.id, {
                       status: p.status === 'active' ? 'inactive' : 'active',
@@ -139,9 +146,15 @@ export function ProfessionalsPage() {
               )
             })}
           </div>
-          <div className="mt-4 flex gap-2">
-            <Button onClick={() => void saveOfferings()}>Guardar</Button>
-            <Button variant="secondary" onClick={() => setSelectedId(null)}>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <Button className="w-full sm:w-auto" onClick={() => void saveOfferings()}>
+              Guardar
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full sm:w-auto"
+              onClick={() => setSelectedId(null)}
+            >
               Cerrar
             </Button>
           </div>

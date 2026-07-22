@@ -184,26 +184,33 @@ export function PublicBookingPage() {
 
   return (
     <PublicLayout>
-      <header className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-brand-700">Turnify</p>
-        <h1 className="mt-1 font-display text-4xl text-ink">{business.name}</h1>
-        <p className="mt-2 text-muted">Reserva tu cita en pocos pasos.</p>
+      <header className="mb-6 sm:mb-8">
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand-700 sm:text-sm">
+          Turnify
+        </p>
+        <h1 className="mt-1 font-display text-3xl text-ink sm:text-4xl">{business.name}</h1>
+        <p className="mt-2 text-sm text-muted sm:text-base">Reserva tu cita en pocos pasos.</p>
       </header>
 
       {step !== 'done' ? (
-        <ol className="mb-6 flex flex-wrap gap-2 text-xs font-semibold text-muted">
-          {stepsLabel.map((label, i) => (
-            <li
-              key={label}
-              className={`rounded-full px-3 py-1 ${
-                i <= ['service', 'professional', 'slot', 'contact'].indexOf(step)
-                  ? 'bg-brand-100 text-brand-800'
-                  : 'bg-white text-slate-400'
-              }`}
-            >
-              {i + 1}. {label}
-            </li>
-          ))}
+        <ol className="mb-6 grid grid-cols-4 gap-1 sm:gap-2">
+          {stepsLabel.map((label, i) => {
+            const active = i <= ['service', 'professional', 'slot', 'contact'].indexOf(step)
+            return (
+              <li
+                key={label}
+                className={`rounded-lg px-1 py-2 text-center text-[10px] font-semibold sm:rounded-full sm:px-3 sm:py-1.5 sm:text-xs ${
+                  active ? 'bg-brand-100 text-brand-800' : 'bg-white text-slate-400'
+                }`}
+              >
+                <span className="sm:hidden">{i + 1}</span>
+                <span className="hidden sm:inline">
+                  {i + 1}. {label}
+                </span>
+                <span className="mt-0.5 block truncate sm:hidden">{label}</span>
+              </li>
+            )
+          })}
         </ol>
       ) : null}
 
@@ -220,7 +227,7 @@ export function PublicBookingPage() {
               <button
                 key={s.id}
                 type="button"
-                className="w-full rounded-xl border border-border bg-white p-4 text-left shadow-sm transition hover:border-brand-500"
+                className="min-h-14 w-full rounded-xl border border-border bg-white p-4 text-left shadow-sm transition hover:border-brand-500 active:scale-[0.99]"
                 onClick={() => {
                   setService(s)
                   setProfessional(null)
@@ -248,7 +255,7 @@ export function PublicBookingPage() {
             <button
               key={p.id}
               type="button"
-              className="w-full rounded-xl border border-border bg-white p-4 text-left shadow-sm hover:border-brand-500"
+              className="min-h-14 w-full rounded-xl border border-border bg-white p-4 text-left shadow-sm hover:border-brand-500 active:scale-[0.99]"
               onClick={() => {
                 setProfessional(p)
                 setStep('slot')
@@ -285,12 +292,12 @@ export function PublicBookingPage() {
               description="Prueba otra fecha."
             />
           ) : (
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
               {slots.map((s) => (
                 <button
                   key={s.starts_at}
                   type="button"
-                  className={`rounded-lg border px-2 py-2 text-sm font-medium ${
+                  className={`min-h-11 rounded-lg border px-2 py-2.5 text-sm font-medium ${
                     slot?.starts_at === s.starts_at
                       ? 'border-brand-600 bg-brand-100 text-brand-800'
                       : 'border-border bg-white hover:border-brand-400'
@@ -332,11 +339,16 @@ export function PublicBookingPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="flex gap-2">
-              <Button type="button" variant="secondary" onClick={() => setStep('slot')}>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row">
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full sm:w-auto"
+                onClick={() => setStep('slot')}
+              >
                 Atrás
               </Button>
-              <Button type="submit" disabled={busy} className="flex-1">
+              <Button type="submit" disabled={busy} className="w-full flex-1">
                 {busy ? 'Reservando…' : 'Confirmar cita'}
               </Button>
             </div>

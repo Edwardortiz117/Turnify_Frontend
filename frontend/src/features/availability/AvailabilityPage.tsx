@@ -124,7 +124,7 @@ export function AvailabilityPage() {
     <div>
       <PageHeader title="Disponibilidad" subtitle="Horario semanal y excepciones" />
       {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
-      <div className="mb-4 max-w-xs">
+      <div className="mb-4 max-w-full sm:max-w-xs">
         <Label>Profesional</Label>
         <Select value={professionalId} onChange={(e) => setProfessionalId(e.target.value)}>
           {professionals.map((p) => (
@@ -137,9 +137,12 @@ export function AvailabilityPage() {
         <h2 className="mb-3 font-semibold">Horario semanal</h2>
         <form className="space-y-3" onSubmit={saveSchedule}>
           {slots.map((slot, idx) => (
-            <div key={`${slot.day_of_week}-${idx}`} className="flex flex-wrap items-center gap-2">
+            <div
+              key={`${slot.day_of_week}-${idx}`}
+              className="grid grid-cols-1 gap-2 rounded-lg border border-border/70 p-3 sm:flex sm:flex-wrap sm:items-center sm:border-0 sm:p-0"
+            >
               <Select
-                className="w-24"
+                className="w-full sm:w-24"
                 value={slot.day_of_week}
                 onChange={(e) => {
                   const next = [...slots]
@@ -151,40 +154,44 @@ export function AvailabilityPage() {
                   <option key={value} value={value}>{label}</option>
                 ))}
               </Select>
-              <Input
-                className="w-28"
-                type="time"
-                value={slot.start_time.slice(0, 5)}
-                onChange={(e) => {
-                  const next = [...slots]
-                  next[idx] = { ...slot, start_time: e.target.value }
-                  setSlots(next)
-                }}
-              />
-              <span className="text-muted">–</span>
-              <Input
-                className="w-28"
-                type="time"
-                value={slot.end_time.slice(0, 5)}
-                onChange={(e) => {
-                  const next = [...slots]
-                  next[idx] = { ...slot, end_time: e.target.value }
-                  setSlots(next)
-                }}
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-full sm:w-28"
+                  type="time"
+                  value={slot.start_time.slice(0, 5)}
+                  onChange={(e) => {
+                    const next = [...slots]
+                    next[idx] = { ...slot, start_time: e.target.value }
+                    setSlots(next)
+                  }}
+                />
+                <span className="text-muted">–</span>
+                <Input
+                  className="w-full sm:w-28"
+                  type="time"
+                  value={slot.end_time.slice(0, 5)}
+                  onChange={(e) => {
+                    const next = [...slots]
+                    next[idx] = { ...slot, end_time: e.target.value }
+                    setSlots(next)
+                  }}
+                />
+              </div>
               <Button
                 type="button"
                 variant="ghost"
+                className="w-full sm:w-auto"
                 onClick={() => setSlots(slots.filter((_, i) => i !== idx))}
               >
                 Quitar
               </Button>
             </div>
           ))}
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Button
               type="button"
               variant="secondary"
+              className="w-full sm:w-auto"
               onClick={() =>
                 setSlots([
                   ...slots,
@@ -194,19 +201,21 @@ export function AvailabilityPage() {
             >
               Agregar franja
             </Button>
-            <Button type="submit">Guardar horario</Button>
+            <Button type="submit" className="w-full sm:w-auto">
+              Guardar horario
+            </Button>
           </div>
         </form>
       </Card>
 
       <Card>
         <h2 className="mb-3 font-semibold">Excepciones</h2>
-        <form className="mb-4 flex flex-wrap gap-3" onSubmit={addException}>
-          <div>
+        <form className="mb-4 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap" onSubmit={addException}>
+          <div className="sm:min-w-[10rem]">
             <Label>Fecha</Label>
             <Input type="date" required value={exDate} onChange={(e) => setExDate(e.target.value)} />
           </div>
-          <div>
+          <div className="sm:min-w-[12rem]">
             <Label>Tipo</Label>
             <Select
               value={exType}
@@ -228,17 +237,23 @@ export function AvailabilityPage() {
               </div>
             </>
           ) : null}
-          <Button type="submit" className="self-end">Agregar</Button>
+          <Button type="submit" className="w-full self-end sm:w-auto">
+            Agregar
+          </Button>
         </form>
         <ul className="space-y-2">
           {exceptions.map((ex) => (
-            <li key={ex.id} className="flex items-center justify-between text-sm">
-              <span>
+            <li
+              key={ex.id}
+              className="flex flex-col gap-2 rounded-lg border border-border/60 p-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:p-0"
+            >
+              <span className="min-w-0 break-words">
                 {formatInTimeZone(ex.starts_at)} – {formatInTimeZone(ex.ends_at)} ·{' '}
                 {ex.type === 'block' ? 'Bloqueo' : 'Apertura extra'}
               </span>
               <Button
                 variant="danger"
+                className="w-full shrink-0 sm:w-auto"
                 onClick={() =>
                   void deleteException(professionalId, ex.id).then(async () =>
                     setExceptions(await listExceptions(professionalId)),

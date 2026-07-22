@@ -53,7 +53,7 @@ export function ClientsPage() {
       <PageHeader title="Clientes" subtitle="Búsqueda y edición básica" />
       {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
       <form
-        className="mb-4 flex gap-2"
+        className="mb-4 flex flex-col gap-2 sm:flex-row"
         onSubmit={(e) => {
           e.preventDefault()
           void refresh(q)
@@ -64,7 +64,9 @@ export function ClientsPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        <Button type="submit">Buscar</Button>
+        <Button type="submit" className="w-full shrink-0 sm:w-auto">
+          Buscar
+        </Button>
       </form>
       {loading ? (
         <Spinner />
@@ -73,12 +75,19 @@ export function ClientsPage() {
       ) : (
         <div className="space-y-2">
           {items.map((c) => (
-            <Card key={c.id} className="flex items-center justify-between gap-3">
-              <div>
+            <Card key={c.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="font-semibold">{c.name}</p>
-                <p className="text-sm text-muted">{c.phone}{c.email ? ` · ${c.email}` : ''}</p>
+                <p className="break-all text-sm text-muted">
+                  {c.phone}
+                  {c.email ? ` · ${c.email}` : ''}
+                </p>
               </div>
-              <Button variant="secondary" onClick={() => setEditing(c)}>
+              <Button
+                variant="secondary"
+                className="w-full sm:w-auto"
+                onClick={() => setEditing(c)}
+              >
                 Editar
               </Button>
             </Card>
@@ -111,9 +120,16 @@ export function ClientsPage() {
                 onChange={(e) => setEditing({ ...editing, email: e.target.value })}
               />
             </div>
-            <div className="flex gap-2 sm:col-span-2">
-              <Button type="submit">Guardar</Button>
-              <Button type="button" variant="secondary" onClick={() => setEditing(null)}>
+            <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row">
+              <Button type="submit" className="w-full sm:w-auto">
+                Guardar
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full sm:w-auto"
+                onClick={() => setEditing(null)}
+              >
                 Cancelar
               </Button>
             </div>

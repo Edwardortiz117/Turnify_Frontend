@@ -37,8 +37,8 @@ export function PlatformDashboardPage() {
         title="Plataforma"
         subtitle="Métricas agregadas"
         actions={
-          <Link to="/platform/businesses">
-            <Button>Ver negocios</Button>
+          <Link to="/platform/businesses" className="w-full sm:w-auto">
+            <Button className="w-full">Ver negocios</Button>
           </Link>
         }
       />
@@ -122,16 +122,18 @@ export function PlatformBusinessesPage() {
       <PageHeader title="Negocios" subtitle={`${total} tenants`} />
       {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
       <Card className="mb-4">
-        <form className="flex flex-wrap gap-3" onSubmit={onCreate}>
-          <div className="min-w-[160px] flex-1">
+        <form className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap" onSubmit={onCreate}>
+          <div className="min-w-0 flex-1 sm:min-w-[160px]">
             <Label>Nombre</Label>
             <Input required value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div className="min-w-[140px] flex-1">
+          <div className="min-w-0 flex-1 sm:min-w-[140px]">
             <Label>Slug</Label>
             <Input required value={slug} onChange={(e) => setSlug(e.target.value)} />
           </div>
-          <Button type="submit" className="self-end">Crear</Button>
+          <Button type="submit" className="w-full self-end sm:w-auto">
+            Crear
+          </Button>
         </form>
       </Card>
       {loading ? (
@@ -141,17 +143,19 @@ export function PlatformBusinessesPage() {
       ) : (
         <div className="space-y-2">
           {items.map((b) => (
-            <Card key={b.id} className="flex items-center justify-between">
-              <div>
+            <Card key={b.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="font-semibold">{b.name}</p>
                 <p className="text-sm text-muted">/{b.slug}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Badge tone={b.status === 'suspended' ? 'danger' : 'success'}>
                   {b.status ?? 'active'}
                 </Badge>
-                <Link to={`/platform/businesses/${b.id}`}>
-                  <Button variant="secondary">Detalle</Button>
+                <Link to={`/platform/businesses/${b.id}`} className="w-full sm:w-auto">
+                  <Button variant="secondary" className="w-full">
+                    Detalle
+                  </Button>
                 </Link>
               </div>
             </Card>
@@ -226,18 +230,20 @@ export function PlatformBusinessDetailPage() {
         {business.timezone ? (
           <p className="text-sm text-muted">Timezone: {business.timezone}</p>
         ) : null}
-        <Button variant="danger" onClick={() => void toggleStatus()}>
+        <Button variant="danger" className="w-full sm:w-auto" onClick={() => void toggleStatus()}>
           {business.status === 'suspended' ? 'Reactivar' : 'Suspender'}
         </Button>
       </Card>
       <Card>
         <h2 className="mb-3 font-semibold">Vincular gerente</h2>
-        <form className="flex flex-wrap gap-3" onSubmit={onAssign}>
-          <div className="min-w-[220px] flex-1">
+        <form className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap" onSubmit={onAssign}>
+          <div className="min-w-0 flex-1 sm:min-w-[220px]">
             <Label>user_id</Label>
             <Input required value={userId} onChange={(e) => setUserId(e.target.value)} />
           </div>
-          <Button type="submit" className="self-end">Vincular</Button>
+          <Button type="submit" className="w-full self-end sm:w-auto">
+            Vincular
+          </Button>
         </form>
       </Card>
     </div>
