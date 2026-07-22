@@ -32,23 +32,40 @@ API base URL: `VITE_API_BASE_URL` (default `http://localhost:3000`).
 
 ## Docker (frontend desacoplado)
 
-El frontend se sirve con Nginx. Las llamadas `/api/*` se proxifican al backend
-(`BACKEND_UPSTREAM`), sin acoplar el código del API en esta imagen.
+### Desarrollo con hot reload (recomendado)
+
+Los cambios en `frontend/src` se reflejan solos; no hace falta reiniciar el contenedor.
 
 ```bash
-# Backend debe estar escuchando (p. ej. localhost:3000)
 cp .env.docker.example .env   # opcional
 docker compose up --build
 ```
 
+- UI: http://localhost:5173  
+- Proxy API: `/api/...` → `BACKEND_UPSTREAM`  
+- Código montado desde `./frontend` (HMR / Vite)
+
+Si ya tenías el contenedor Nginx antiguo, recrea el servicio:
+
+```bash
+docker compose down
+docker compose up --build
+```
+
+### Producción local (Nginx, build estático)
+
+```bash
+docker compose --profile prod up --build frontend-prod
+```
+
 - UI: http://localhost:8080  
-- Proxy API: `http://localhost:8080/api/v1/...` → `BACKEND_UPSTREAM`
 
 | Variable | Default | Descripción |
 |----------|---------|-------------|
-| `FRONTEND_PORT` | `8080` | Puerto publicado del frontend |
+| `FRONTEND_PORT` | `5173` | Puerto Vite (dev) |
+| `FRONTEND_PROD_PORT` | `8080` | Puerto Nginx (profile `prod`) |
 | `BACKEND_UPSTREAM` | `host.docker.internal:3000` | Host:puerto del backend (sin `http://`) |
-| `VITE_API_BASE_URL` | *(vacío)* | Vacío = same-origin vía proxy; o URL directa al API |
+| `VITE_API_BASE_URL` | *(vacío)* | Vacío = same-origin vía proxy |
 
 Backend en otro contenedor de la red `turnify-net`:
 

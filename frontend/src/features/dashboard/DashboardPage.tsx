@@ -6,6 +6,7 @@ import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Card, PageHeader, PageLoading, TextLink } from '../../shared/ui/feedback'
+import { SegmentedStatBar } from './SegmentedStatBar'
 import { WeekAgenda } from './WeekAgenda'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -73,13 +74,16 @@ export function DashboardPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">Citas hoy</p>
           <p className="mt-2 text-2xl font-semibold tabular-nums">{data?.appointments_today ?? 0}</p>
         </Card>
-        <Card>
+        <Card className="sm:col-span-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">
             Confirmadas esta semana
           </p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums">
-            {data?.confirmed_this_week ?? 0}
-          </p>
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+            <p className="shrink-0 text-2xl font-semibold tabular-nums">
+              {data?.confirmed_this_week ?? 0}
+            </p>
+            <SegmentedStatBar counts={data?.by_status} />
+          </div>
         </Card>
         {data?.by_status
           ? Object.entries(data.by_status).map(([status, count]) => (

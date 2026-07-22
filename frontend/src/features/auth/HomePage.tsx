@@ -5,7 +5,8 @@ import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
 import { PublicLayout } from '../../shared/ui/layouts'
 import { Alert } from '../../shared/ui/Alert'
-import { BrandEyebrow, Card } from '../../shared/ui/feedback'
+import { BrandLogo } from '../../shared/ui/BrandLogo'
+import { Card } from '../../shared/ui/feedback'
 
 function slugify(value: string) {
   return value
@@ -46,8 +47,8 @@ export function HomePage() {
 
   return (
     <PublicLayout wide center>
-      <BrandEyebrow />
-      <h1 className="mt-3 font-display text-4xl leading-tight text-balance text-ink sm:text-5xl lg:text-6xl">
+      <BrandLogo size="lg" />
+      <h1 className="mt-4 font-display text-4xl leading-tight text-balance text-ink sm:text-5xl lg:text-6xl">
         Citas claras para negocios de Cúcuta
       </h1>
       <p className="mt-4 max-w-xl text-base text-pretty text-muted sm:text-lg">

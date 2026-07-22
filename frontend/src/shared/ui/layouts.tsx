@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { BrandLogo } from './BrandLogo'
 import { Badge } from './feedback'
+import { SiteFooter } from './SiteFooter'
 import { UserMenu } from './UserMenu'
 
 function MenuIcon({ open }: { open: boolean }) {
@@ -84,7 +86,8 @@ export function ShellFrame({
       >
         <div className="px-5 py-5">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-display text-2xl text-brand-800">{brand}</p>
+            <BrandLogo size="md" />
+            <span className="sr-only">{brand}</span>
             {badge ? <Badge tone="brand">{badge}</Badge> : null}
           </div>
           {subtitle ? <p className="mt-1 text-xs text-muted">{subtitle}</p> : null}
@@ -116,17 +119,15 @@ export function ShellFrame({
             >
               <MenuIcon open={navOpen} />
             </button>
-            <div className="min-w-0 lg:hidden">
-              <p className="truncate font-display text-xl text-brand-800">{brand}</p>
-              {badge ? (
-                <Badge tone="brand">{badge}</Badge>
-              ) : subtitle ? (
-                <p className="text-xs text-muted">{subtitle}</p>
-              ) : null}
+            <div className="flex min-w-0 items-center gap-2 lg:hidden">
+              <BrandLogo size="sm" />
+              {badge ? <Badge tone="brand">{badge}</Badge> : null}
             </div>
-            <p className="hidden font-display text-lg text-brand-800 lg:block">
-              {badge ? `${brand} · ${badge}` : brand}
-            </p>
+            {badge ? (
+              <div className="hidden lg:block">
+                <Badge tone="brand">{badge}</Badge>
+              </div>
+            ) : null}
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
@@ -135,11 +136,12 @@ export function ShellFrame({
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-6 lg:px-8">
+        <main className="min-w-0 flex-1 px-4 py-5 pb-5 sm:px-6 sm:py-6 lg:px-8">
           <div className="mx-auto w-full max-w-6xl">
             <Outlet />
           </div>
         </main>
+        <SiteFooter variant="compact" />
       </div>
     </div>
   )
@@ -147,12 +149,20 @@ export function ShellFrame({
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-10 sm:px-6">
-      <div className="mb-8 text-center">
-        <p className="font-display text-3xl text-brand-800 sm:text-4xl">Turnify</p>
-        <p className="mt-2 text-sm text-muted">Gestión de citas para tu negocio</p>
+    <div className="flex min-h-dvh flex-col">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 sm:px-6">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <BrandLogo size="lg" />
+          <p className="mt-3 text-sm text-muted">Gestión de citas para tu negocio</p>
+        </div>
+        {children}
       </div>
-      {children}
+      <SiteFooter
+        links={[
+          { to: '/', label: 'Inicio' },
+          { to: '/login', label: 'Iniciar sesión' },
+        ]}
+      />
     </div>
   )
 }
@@ -167,12 +177,21 @@ export function PublicLayout({
   center?: boolean
 }) {
   return (
-    <div
-      className={`mx-auto min-h-dvh w-full px-4 sm:px-6 ${
-        wide ? 'max-w-3xl' : 'max-w-2xl'
-      } ${center ? 'flex flex-col justify-center py-12 sm:py-16' : 'py-6 sm:py-10 lg:py-12'}`}
-    >
-      {children}
+    <div className="flex min-h-dvh flex-col">
+      <div
+        className={`mx-auto w-full flex-1 px-4 sm:px-6 ${
+          wide ? 'max-w-3xl' : 'max-w-2xl'
+        } ${center ? 'flex flex-col justify-center py-12 sm:py-16' : 'py-6 sm:py-10 lg:py-12'}`}
+      >
+        {children}
+      </div>
+      <SiteFooter
+        links={[
+          { to: '/', label: 'Inicio' },
+          { to: '/login', label: 'Iniciar sesión' },
+          { to: '/register', label: 'Registrar negocio' },
+        ]}
+      />
     </div>
   )
 }
