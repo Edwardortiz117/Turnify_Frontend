@@ -2,7 +2,7 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import { ChangePasswordCard } from '../auth/ChangePasswordCard'
 import { Card, PageHeader, Badge } from '../../shared/ui/feedback'
 
-export function PlatformAccountPage() {
+export const PlatformAccountPage = () => {
   const { session } = useAuth()
 
   return (
@@ -22,7 +22,6 @@ export function PlatformAccountPage() {
             <Badge tone="brand">Admin plataforma</Badge>
           </div>
         </div>
-        
       </Card>
       <ChangePasswordCard />
     </div>

@@ -194,8 +194,9 @@ export interface PlatformDashboard {
 }
 
 export interface PlatformLogItem {
-  time?: string
-  level?: string
+  time?: number | string
+  level?: number | string
+  level_label?: string
   msg?: string
   message?: string
   requestId?: string

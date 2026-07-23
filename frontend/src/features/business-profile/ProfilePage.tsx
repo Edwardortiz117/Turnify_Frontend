@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { getProfile, updateProfile } from '../catalog/businessApi'
 import type { Business } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
@@ -9,14 +9,14 @@ import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
 import { Badge, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
-export function ProfilePage() {
+export const ProfilePage = () => {
   const [profile, setProfile] = useState<Business | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState(false)
 
-  async function load() {
+  const loadProfile = async () => {
     setLoading(true)
     setError(null)
     try {
@@ -30,12 +30,31 @@ export function ProfilePage() {
   }
 
   useEffect(() => {
-    void load()
+    void loadProfile()
   }, [])
 
-  async function onSubmit(e: FormEvent) {
+  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!profile) return
+    setProfile({ ...profile, name: e.target.value })
+  }
+
+  const handleSlugChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!profile) return
+    setProfile({ ...profile, slug: e.target.value })
+  }
+
+  const handleCancellationHoursChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!profile) return
+    setProfile({
+      ...profile,
+      cancellation_min_hours: Number(e.target.value),
+    })
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!profile) return
+
     setError(null)
     setSuccess(null)
     try {
@@ -51,8 +70,9 @@ export function ProfilePage() {
     }
   }
 
-  async function toggleOpenClosed() {
+  const handleToggleOpenClosed = async () => {
     if (!profile) return
+
     const next = profile.status === 'suspended' ? 'active' : 'suspended'
     setError(null)
     setSuccess(null)
@@ -72,9 +92,7 @@ export function ProfilePage() {
     }
   }
 
-  if (loading) {
-    return <PageLoading />
-  }
+  if (loading) return <PageLoading />
 
   if (!profile) {
     return (
@@ -89,7 +107,7 @@ export function ProfilePage() {
           title="No se pudo cargar el perfil"
           description={error ?? 'Intenta de nuevo en unos segundos.'}
           actionLabel="Reintentar"
-          onAction={() => void load()}
+          onAction={() => void loadProfile()}
         />
       </div>
     )
@@ -100,8 +118,16 @@ export function ProfilePage() {
   return (
     <div className="mx-auto w-full max-w-2xl">
       <PageHeader title="Ajustes" subtitle="Negocio, disponibilidad y contraseña" />
-      {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
-      {success ? <div className="mb-3"><Alert tone="success">{success}</Alert></div> : null}
+      {error ? (
+        <div className="mb-3">
+          <Alert>{error}</Alert>
+        </div>
+      ) : null}
+      {success ? (
+        <div className="mb-3">
+          <Alert tone="success">{success}</Alert>
+        </div>
+      ) : null}
 
       <Card className="mb-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -119,46 +145,56 @@ export function ProfilePage() {
           variant={isOpen ? 'danger' : 'primary'}
           className="w-full sm:w-auto"
           disabled={toggling}
-          onClick={() => void toggleOpenClosed()}
+          aria-busy={toggling}
+          aria-pressed={!isOpen}
+          onClick={() => void handleToggleOpenClosed()}
         >
           {toggling ? 'Actualizando…' : isOpen ? 'Cerrar negocio' : 'Abrir negocio'}
         </Button>
       </Card>
 
       <Card className="mb-4">
-        <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
+        <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
           <div className="sm:col-span-2">
-            <Label>Nombre</Label>
+            <Label htmlFor="business-name">Nombre</Label>
             <Input
+              id="business-name"
               value={profile.name}
-              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+              onChange={handleNameChange}
+              autoComplete="organization"
             />
           </div>
           <div>
-            <Label>Slug</Label>
+            <Label htmlFor="business-slug">Slug</Label>
             <Input
+              id="business-slug"
               value={profile.slug}
-              onChange={(e) => setProfile({ ...profile, slug: e.target.value })}
+              onChange={handleSlugChange}
+              autoComplete="off"
+              spellCheck={false}
             />
           </div>
           <div>
-            <Label>Horas mín. para cancelar</Label>
+            <Label htmlFor="cancellation-hours">Horas mín. para cancelar</Label>
             <Input
+              id="cancellation-hours"
               type="number"
               min={0}
               value={profile.cancellation_min_hours ?? 0}
-              onChange={(e) =>
-                setProfile({
-                  ...profile,
-                  cancellation_min_hours: Number(e.target.value),
-                })
-              }
+              onChange={handleCancellationHoursChange}
             />
           </div>
           <div className="sm:col-span-2">
-            <Label>Timezone</Label>
-            <Input value={profile.timezone ?? 'America/Bogota'} disabled readOnly />
-            <p className="mt-1 text-xs text-muted">Solo lectura (el API no permite editarlo aquí).</p>
+            <Label htmlFor="business-timezone">Timezone</Label>
+            <Input
+              id="business-timezone"
+              value={profile.timezone ?? 'America/Bogota'}
+              disabled
+              readOnly
+            />
+            <p className="mt-1 text-xs text-muted">
+              Solo lectura (el API no permite editarlo aquí).
+            </p>
           </div>
           <div className="sm:col-span-2">
             <Button type="submit" className="w-full sm:w-auto">

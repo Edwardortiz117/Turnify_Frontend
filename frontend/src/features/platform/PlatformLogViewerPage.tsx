@@ -9,6 +9,18 @@ import { Label } from '../../shared/ui/Label'
 import { Select } from '../../shared/ui/Select'
 import { Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
+const formatLogTime = (time: unknown): string => {
+  if (typeof time === 'number') {
+    try {
+      return new Date(time).toLocaleString()
+    } catch {
+      return String(time)
+    }
+  }
+  if (typeof time === 'string' && time.length > 0) return time
+  return '—'
+}
+
 export function PlatformLogViewerPage() {
   const [items, setItems] = useState<PlatformLogItem[]>([])
   const [meta, setMeta] = useState<{ total: number; buffer_size: number; buffer_capacity: number } | null>(
@@ -105,10 +117,10 @@ export function PlatformLogViewerPage() {
               {items.map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-0">
                   <td className="whitespace-nowrap px-3 py-2 font-mono text-xs">
-                    {String(row.level ?? '—')}
+                    {String(row.level_label ?? row.level ?? '—')}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 tabular-nums text-xs text-muted">
-                    {String(row.time ?? '—')}
+                    {formatLogTime(row.time)}
                   </td>
                   <td className="max-w-xl px-3 py-2 text-pretty">
                     {String(row.msg ?? row.message ?? JSON.stringify(row))}
