@@ -6,12 +6,12 @@ export function PlatformAccountPage() {
   const { session } = useAuth()
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-2xl">
       <PageHeader
         title="Ajustes"
         subtitle="Cuenta del administrador de plataforma"
       />
-      <Card className="mb-4 max-w-lg space-y-3">
+      <Card className="mb-4 space-y-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">Correo</p>
           <p className="mt-1 font-medium text-ink">{session?.email ?? '—'}</p>

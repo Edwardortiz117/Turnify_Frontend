@@ -78,7 +78,7 @@ export function ProfilePage() {
 
   if (!profile) {
     return (
-      <div>
+      <div className="mx-auto w-full max-w-2xl">
         <PageHeader title="Ajustes" subtitle="Negocio, disponibilidad y contraseña" />
         {error ? (
           <div className="mb-3">
@@ -98,14 +98,14 @@ export function ProfilePage() {
   const isOpen = profile.status !== 'suspended'
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-2xl">
       <PageHeader title="Ajustes" subtitle="Negocio, disponibilidad y contraseña" />
       {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
       {success ? <div className="mb-3"><Alert tone="success">{success}</Alert></div> : null}
 
-      <Card className="mb-4 max-w-lg space-y-3">
+      <Card className="mb-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink">Estado de la vitrina</p>
             <p className="mt-1 text-xs text-pretty text-muted">
               Cerrar solo afecta reservas públicas. No bloquea tu acceso al panel.
@@ -125,9 +125,9 @@ export function ProfilePage() {
         </Button>
       </Card>
 
-      <Card className="mb-4 max-w-lg">
-        <form className="space-y-4" onSubmit={onSubmit}>
-          <div>
+      <Card className="mb-4">
+        <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
+          <div className="sm:col-span-2">
             <Label>Nombre</Label>
             <Input
               value={profile.name}
@@ -140,11 +140,6 @@ export function ProfilePage() {
               value={profile.slug}
               onChange={(e) => setProfile({ ...profile, slug: e.target.value })}
             />
-          </div>
-          <div>
-            <Label>Timezone</Label>
-            <Input value={profile.timezone ?? 'America/Bogota'} disabled readOnly />
-            <p className="mt-1 text-xs text-muted">Solo lectura (el API no permite editarlo aquí).</p>
           </div>
           <div>
             <Label>Horas mín. para cancelar</Label>
@@ -160,9 +155,16 @@ export function ProfilePage() {
               }
             />
           </div>
-          <Button type="submit" className="w-full sm:w-auto">
-            Guardar perfil
-          </Button>
+          <div className="sm:col-span-2">
+            <Label>Timezone</Label>
+            <Input value={profile.timezone ?? 'America/Bogota'} disabled readOnly />
+            <p className="mt-1 text-xs text-muted">Solo lectura (el API no permite editarlo aquí).</p>
+          </div>
+          <div className="sm:col-span-2">
+            <Button type="submit" className="w-full sm:w-auto">
+              Guardar perfil
+            </Button>
+          </div>
         </form>
       </Card>
 

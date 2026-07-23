@@ -39,11 +39,11 @@ export function ChangePasswordCard() {
   }
 
   return (
-    <Card className="max-w-lg">
+    <Card>
       <h2 className="mb-3 font-semibold">Cambiar contraseña</h2>
       {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
       {success ? <div className="mb-3"><Alert tone="success">{success}</Alert></div> : null}
-      <form className="space-y-4" onSubmit={onSubmit}>
+      <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
         <div>
           <Label htmlFor="current-password">Contraseña actual</Label>
           <Input
@@ -67,9 +67,11 @@ export function ChangePasswordCard() {
             autoComplete="new-password"
           />
         </div>
-        <Button type="submit" className="w-full sm:w-auto" disabled={loading}>
-          {loading ? 'Guardando…' : 'Actualizar contraseña'}
-        </Button>
+        <div className="sm:col-span-2">
+          <Button type="submit" className="w-full sm:w-auto" disabled={loading}>
+            {loading ? 'Guardando…' : 'Actualizar contraseña'}
+          </Button>
+        </div>
       </form>
     </Card>
   )
