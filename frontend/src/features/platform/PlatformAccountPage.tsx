@@ -22,6 +22,7 @@ export function PlatformAccountPage() {
             <Badge tone="brand">Admin plataforma</Badge>
           </div>
         </div>
+        
       </Card>
       <ChangePasswordCard />
     </div>
