@@ -2,6 +2,7 @@ import { apiRequest } from '../../shared/api/client'
 import type {
   Appointment,
   AvailableSlots,
+  Paginated,
   Professional,
   PublicBusiness,
   Service,
@@ -58,4 +59,11 @@ export function cancelPublicAppointment(appointmentId: string, phone: string) {
     method: 'POST',
     body: { phone },
   })
+}
+
+export function lookupPublicAppointments(slug: string, phone: string) {
+  return apiRequest<Paginated<Appointment>>(
+    `/public/businesses/${encodeURIComponent(slug)}/appointments/lookup`,
+    { method: 'POST', body: { phone } },
+  )
 }

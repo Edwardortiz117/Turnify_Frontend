@@ -29,6 +29,7 @@ Post-login routing: `scope === "platform"` → `/platform`; `scope === "business
 | GET | `.../slots?date=YYYY-MM-DD` | `{ date, professional_id, service_id, slots[] }` |
 | POST | `/businesses/:slug/appointments` | Header `Idempotency-Key`; may `403 CLIENT_BLOCKED` |
 | POST | `/appointments/:appointmentId/cancel` | Body `{ phone }` |
+| POST | `/businesses/:slug/appointments/lookup` | Body `{ phone }` → citas confirmadas próximas |
 
 ## Business — `/api/v1/business` (JWT scope=business)
 

@@ -12,6 +12,7 @@ import { ForgotPasswordPage } from '../features/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '../features/auth/ResetPasswordPage'
 import { PublicBookingPage } from '../features/public-booking/PublicBookingPage'
 import { CancelAppointmentPage } from '../features/public-booking/CancelAppointmentPage'
+import { MyAppointmentsPage } from '../features/public-booking/MyAppointmentsPage'
 import { DashboardPage } from '../features/dashboard/DashboardPage'
 import { AppointmentsPage } from '../features/appointments/AppointmentsPage'
 import { ServicesPage } from '../features/catalog/ServicesPage'
@@ -58,6 +59,7 @@ export function AppRouter() {
         </Route>
       </Route>
 
+      <Route path="/:slug/mis-citas" element={<MyAppointmentsPage />} />
       <Route path="/:slug" element={<PublicBookingPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

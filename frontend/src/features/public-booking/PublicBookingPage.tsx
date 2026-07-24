@@ -210,7 +210,10 @@ export function PublicBookingPage() {
   return (
     <PublicLayout>
       <header className="mb-7 sm:mb-9">
-        <BrandLogo size="md" className="!mx-0" />
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <BrandLogo size="md" className="!mx-0" />
+          <TextLink to={`/${slug}/mis-citas`}>Mis citas</TextLink>
+        </div>
         <h1 className="mt-3 font-display text-3xl tracking-tight text-balance text-ink sm:text-4xl">
           {business.name}
         </h1>
@@ -382,6 +385,7 @@ export function PublicBookingPage() {
             >
               Solicitar reprogramación
             </Button>
+            <TextLink to={`/${slug}/mis-citas`}>Ver mis citas</TextLink>
             <TextLink to={`/cancel/${appointmentId}`}>¿Necesitas cancelar?</TextLink>
           </div>
         </Card>
