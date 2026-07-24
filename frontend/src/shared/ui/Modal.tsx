@@ -15,21 +15,29 @@ export const Modal = ({ open, title, onClose, children, className = '' }: ModalP
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
   const previousFocus = useRef<HTMLElement | null>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (!open) return
+
     previousFocus.current = document.activeElement as HTMLElement | null
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
     const panel = panelRef.current
-    const focusables = panel?.querySelectorAll<HTMLElement>(FOCUSABLE)
-    focusables?.[0]?.focus()
+    const initial = panel?.querySelectorAll<HTMLElement>(FOCUSABLE)
+    // Prefer first field over the header close button
+    const preferred =
+      panel?.querySelector<HTMLElement>(
+        'input:not([disabled]),textarea:not([disabled]),select:not([disabled])',
+      ) ?? initial?.[0]
+    preferred?.focus()
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()
-        onClose()
+        onCloseRef.current()
         return
       }
       if (e.key !== 'Tab' || !panel) return
@@ -54,17 +62,16 @@ export const Modal = ({ open, title, onClose, children, className = '' }: ModalP
       document.removeEventListener('keydown', handleKeyDown)
       previousFocus.current?.focus()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
-      <button
-        type="button"
+      <div
         className="absolute inset-0 bg-ink/40"
-        aria-label="Cerrar"
-        onClick={onClose}
+        aria-hidden
+        onClick={() => onCloseRef.current()}
       />
       <div
         ref={panelRef}
@@ -81,7 +88,7 @@ export const Modal = ({ open, title, onClose, children, className = '' }: ModalP
             type="button"
             className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-border text-ink transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
             aria-label="Cerrar diálogo"
-            onClick={onClose}
+            onClick={() => onCloseRef.current()}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path
