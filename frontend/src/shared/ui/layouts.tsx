@@ -63,14 +63,14 @@ export function ShellFrame({
   }, [navOpen])
 
   const linkClass = (isActive: boolean) =>
-    `min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium transition duration-200 ease-out ${
+    `flex min-h-11 items-center justify-center rounded-xl px-3 py-2.5 text-center text-sm font-medium transition duration-200 ease-out ${
       isActive
         ? 'bg-brand-50 text-brand-800 shadow-sm ring-1 ring-brand-200/70'
         : 'text-slate-600 hover:bg-slate-50 hover:text-ink'
     }`
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[285px_1fr]">
       {navOpen ? (
         <button
           type="button"
@@ -82,7 +82,7 @@ export function ShellFrame({
 
       <aside
         id="app-nav"
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100%,18rem)] flex-col border-r border-border/80 bg-white/98 text-ink shadow-sm backdrop-blur-md transition-transform duration-200 ease-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100%,20.7rem)] flex-col border-r border-border/80 bg-white/98 text-ink shadow-sm backdrop-blur-md transition-transform duration-200 ease-out lg:static lg:translate-x-0 ${
           navOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >

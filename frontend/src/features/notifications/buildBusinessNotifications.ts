@@ -1,5 +1,6 @@
 import type { Appointment, Professional, WeeklySlot } from '../../shared/api/types'
 import { toDateInputValue } from '../../shared/datetime'
+import type { RescheduleRequest } from '../../shared/storage/rescheduleRequestStorage'
 import type { AppNotification } from './types'
 
 const ALMOST_FULL_RATIO = 0.8
@@ -32,11 +33,23 @@ export function buildBusinessNotifications(input: {
   appointments: Appointment[]
   professionals: Professional[]
   schedulesByProfessionalId: Record<string, WeeklySlot[]>
+  rescheduleRequests?: RescheduleRequest[]
 }): AppNotification[] {
   const now = input.now ?? new Date()
   const today = toDateInputValue(now)
   const todayDow = dayOfWeekMon1(today)
   const notifications: AppNotification[] = []
+
+  for (const req of input.rescheduleRequests ?? []) {
+    const who = req.clientName?.trim() || req.phone
+    notifications.push({
+      id: `reschedule-req:${req.id}`,
+      title: 'Solicitud de reprogramación',
+      body: `${who}: ${req.message}`,
+      href: '/app/appointments',
+      createdAt: req.createdAt,
+    })
+  }
 
   for (const a of input.appointments) {
     if (a.status !== 'confirmed') continue

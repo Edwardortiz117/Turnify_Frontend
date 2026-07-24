@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  getProfile,
   getWeeklySchedule,
   listAppointments,
   listProfessionals,
 } from '../catalog/businessApi'
+import { readRescheduleRequests } from '../../shared/storage/rescheduleRequestStorage'
 import { endOfDayIso, startOfDayIso, toDateInputValue } from '../../shared/datetime'
 import { buildBusinessNotifications } from './buildBusinessNotifications'
 import { readDismissedIds, writeDismissedIds } from './dismissStorage'
@@ -29,13 +31,14 @@ export function useBusinessNotifications(): NotificationSource {
     const today = toDateInputValue()
     const fromDate = shiftDateStr(today, -7)
     try {
-      const [pros, appts] = await Promise.all([
+      const [pros, appts, profile] = await Promise.all([
         listProfessionals(),
         listAppointments({
           from: startOfDayIso(fromDate),
           to: endOfDayIso(today),
           limit: 200,
         }),
+        getProfile(),
       ])
       const active = pros.filter((p) => p.status === 'active')
       const schedules = await Promise.all(
@@ -53,6 +56,7 @@ export function useBusinessNotifications(): NotificationSource {
           appointments: appts.items ?? [],
           professionals: active,
           schedulesByProfessionalId: Object.fromEntries(schedules),
+          rescheduleRequests: readRescheduleRequests(profile.slug),
         }),
       )
     } catch {

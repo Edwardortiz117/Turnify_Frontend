@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import { cancelPublicAppointment } from './api'
+import { PublicRescheduleRequestModal } from './PublicRescheduleRequestModal'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { PublicLayout } from '../../shared/ui/layouts'
 import { Alert } from '../../shared/ui/Alert'
@@ -9,12 +10,31 @@ import { Input } from '../../shared/ui/Input'
 import { Label } from '../../shared/ui/Label'
 import { Card, TextLink } from '../../shared/ui/feedback'
 
+type LastAppointment = { id: string; slug: string; phone?: string }
+
+function readLastAppointment(): LastAppointment | null {
+  try {
+    const raw = localStorage.getItem('turnify.lastAppointment')
+    if (!raw) return null
+    const data = JSON.parse(raw) as LastAppointment
+    if (!data?.id || !data?.slug) return null
+    return data
+  } catch {
+    return null
+  }
+}
+
 export function CancelAppointmentPage() {
   const { appointmentId = '' } = useParams()
-  const [phone, setPhone] = useState('')
+  const remembered = useMemo(() => readLastAppointment(), [])
+  const [phone, setPhone] = useState(remembered?.phone ?? '')
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [rescheduleOpen, setRescheduleOpen] = useState(false)
+
+  const canRequestReschedule =
+    !!remembered?.slug && remembered.id === appointmentId
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -66,9 +86,29 @@ export function CancelAppointmentPage() {
             <Button type="submit" variant="danger" className="w-full" disabled={loading}>
               {loading ? 'Cancelando…' : 'Cancelar cita'}
             </Button>
+            {canRequestReschedule ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={() => setRescheduleOpen(true)}
+              >
+                Mejor solicitar reprogramación
+              </Button>
+            ) : null}
           </form>
         )}
       </Card>
+
+      {canRequestReschedule ? (
+        <PublicRescheduleRequestModal
+          open={rescheduleOpen}
+          slug={remembered.slug}
+          appointmentId={appointmentId}
+          defaultPhone={phone}
+          onClose={() => setRescheduleOpen(false)}
+        />
+      ) : null}
     </PublicLayout>
   )
 }

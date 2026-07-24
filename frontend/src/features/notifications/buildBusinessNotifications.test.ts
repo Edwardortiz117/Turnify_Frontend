@@ -54,4 +54,26 @@ describe('buildBusinessNotifications', () => {
     })
     expect(notes.some((n) => n.title === 'Agenda casi llena')).toBe(true)
   })
+
+  it('includes public reschedule requests', () => {
+    const notes = buildBusinessNotifications({
+      now: new Date('2026-07-22T15:00:00.000Z'),
+      appointments: [],
+      professionals: [pro],
+      schedulesByProfessionalId: {},
+      rescheduleRequests: [
+        {
+          id: 'r1',
+          slug: 'demo',
+          appointmentId: 'a1',
+          phone: '300',
+          clientName: 'Paula',
+          message: '¿Pueden moverme al viernes?',
+          createdAt: '2026-07-22T14:00:00.000Z',
+        },
+      ],
+    })
+    expect(notes[0]?.title).toBe('Solicitud de reprogramación')
+    expect(notes[0]?.body).toContain('Paula')
+  })
 })

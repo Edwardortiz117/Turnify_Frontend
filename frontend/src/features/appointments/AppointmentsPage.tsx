@@ -1,14 +1,15 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import {
   cancelAppointment,
   completeAppointment,
   createAppointment,
+  getProfile,
   listAppointments,
   listProfessionals,
   listServices,
   noShowAppointment,
-  rescheduleAppointment,
 } from '../catalog/businessApi'
+import { RescheduleModal } from './RescheduleModal'
 import type { Appointment, Professional, Service } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { endOfDayIso, formatInTimeZone, startOfDayIso, toDateInputValue } from '../../shared/datetime'
@@ -20,7 +21,7 @@ import { Label } from '../../shared/ui/Label'
 import { Select } from '../../shared/ui/Select'
 import { Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
 
-export function AppointmentsPage() {
+export const AppointmentsPage = () => {
   const [from, setFrom] = useState(toDateInputValue())
   const [to, setTo] = useState(toDateInputValue())
   const [items, setItems] = useState<Appointment[]>([])
@@ -29,6 +30,9 @@ export function AppointmentsPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null)
+  const [businessSlug, setBusinessSlug] = useState('')
+  const [timezone, setTimezone] = useState('America/Bogota')
 
   const [serviceId, setServiceId] = useState('')
   const [professionalId, setProfessionalId] = useState('')
@@ -37,7 +41,7 @@ export function AppointmentsPage() {
   const [clientPhone, setClientPhone] = useState('')
   const [forced, setForced] = useState(false)
 
-  async function refresh() {
+  const refresh = async () => {
     setLoading(true)
     setError(null)
     try {
@@ -59,17 +63,19 @@ export function AppointmentsPage() {
   }, [from, to])
 
   useEffect(() => {
-    void Promise.all([listServices(), listProfessionals()])
-      .then(([s, p]) => {
+    void Promise.all([listServices(), listProfessionals(), getProfile()])
+      .then(([s, p, profile]) => {
         setServices(s)
         setProfessionals(p)
+        setBusinessSlug(profile.slug)
+        if (profile.timezone) setTimezone(profile.timezone)
         if (s[0]) setServiceId(s[0].id)
         if (p[0]) setProfessionalId(p[0].id)
       })
       .catch(() => undefined)
   }, [])
 
-  async function onCreate(e: FormEvent) {
+  const handleCreate = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
     try {
@@ -89,29 +95,28 @@ export function AppointmentsPage() {
     }
   }
 
-  async function runAction(
+  const handleAction = async (
     id: string,
-    action: 'cancel' | 'complete' | 'no_show' | 'reschedule',
-  ) {
+    action: 'cancel' | 'complete' | 'no_show',
+  ) => {
     setError(null)
     try {
       if (action === 'cancel') await cancelAppointment(id)
       if (action === 'complete') await completeAppointment(id)
       if (action === 'no_show') await noShowAppointment(id)
-      if (action === 'reschedule') {
-        const next = window.prompt('Nueva fecha/hora local (YYYY-MM-DDTHH:mm)')
-        if (!next) return
-        const appt = items.find((a) => a.id === id)
-        if (!appt) return
-        await rescheduleAppointment(id, {
-          professional_id: appt.professional_id,
-          starts_at: new Date(next).toISOString(),
-        })
-      }
       await refresh()
     } catch (err) {
       setError(getErrorMessage(err))
     }
+  }
+
+  const handleOpenReschedule = (appointment: Appointment) => {
+    setError(null)
+    if (!businessSlug) {
+      setError('No se pudo cargar el negocio. Recarga e intenta de nuevo.')
+      return
+    }
+    setRescheduleTarget(appointment)
   }
 
   return (
@@ -127,25 +132,41 @@ export function AppointmentsPage() {
       />
       <div className="mb-4 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
         <div className="sm:min-w-[10rem]">
-          <Label>Desde</Label>
-          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <Label htmlFor="agenda-from">Desde</Label>
+          <Input
+            id="agenda-from"
+            type="date"
+            value={from}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setFrom(e.target.value)}
+          />
         </div>
         <div className="sm:min-w-[10rem]">
-          <Label>Hasta</Label>
-          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          <Label htmlFor="agenda-to">Hasta</Label>
+          <Input
+            id="agenda-to"
+            type="date"
+            value={to}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setTo(e.target.value)}
+          />
         </div>
       </div>
-      {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
+      {error ? (
+        <div className="mb-3">
+          <Alert>{error}</Alert>
+        </div>
+      ) : null}
 
       {showForm ? (
         <Card className="mb-4">
           <h2 className="mb-3 font-semibold">Cita asistida</h2>
-          <form className="grid gap-3 sm:grid-cols-2" onSubmit={onCreate}>
+          <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleCreate}>
             <div>
               <Label>Servicio</Label>
               <Select value={serviceId} onChange={(e) => setServiceId(e.target.value)} required>
                 {services.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
                 ))}
               </Select>
             </div>
@@ -157,7 +178,9 @@ export function AppointmentsPage() {
                 required
               >
                 {professionals.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
                 ))}
               </Select>
             </div>
@@ -176,7 +199,11 @@ export function AppointmentsPage() {
             </div>
             <div>
               <Label>Teléfono</Label>
-              <Input required value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} />
+              <Input
+                required
+                value={clientPhone}
+                onChange={(e) => setClientPhone(e.target.value)}
+              />
             </div>
             <label className="flex items-center gap-2 text-sm sm:col-span-2">
               <input
@@ -207,16 +234,17 @@ export function AppointmentsPage() {
       ) : (
         <div className="space-y-3">
           {items.map((a) => (
-            <Card key={a.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Card
+              key={a.id}
+              className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <AppointmentStatusBadge status={a.status} />
-                  <span className="font-semibold">
-                    {a.client?.name ?? a.client_id}
-                  </span>
+                  <span className="font-semibold">{a.client?.name ?? a.client_id}</span>
                 </div>
                 <p className="mt-1 text-sm text-muted">
-                  {formatInTimeZone(a.starts_at)} · {a.service?.name ?? a.service_id} ·{' '}
+                  {formatInTimeZone(a.starts_at, timezone)} · {a.service?.name ?? a.service_id} ·{' '}
                   {a.professional?.name ?? a.professional_id}
                 </p>
               </div>
@@ -225,28 +253,28 @@ export function AppointmentsPage() {
                   <Button
                     variant="secondary"
                     className="w-full sm:w-auto"
-                    onClick={() => void runAction(a.id, 'complete')}
+                    onClick={() => void handleAction(a.id, 'complete')}
                   >
                     Marcar completada
                   </Button>
                   <Button
                     variant="secondary"
                     className="w-full sm:w-auto"
-                    onClick={() => void runAction(a.id, 'no_show')}
+                    onClick={() => void handleAction(a.id, 'no_show')}
                   >
                     Marcar no asistió
                   </Button>
                   <Button
                     variant="secondary"
                     className="w-full sm:w-auto"
-                    onClick={() => void runAction(a.id, 'reschedule')}
+                    onClick={() => handleOpenReschedule(a)}
                   >
                     Reprogramar
                   </Button>
                   <Button
                     variant="danger"
                     className="w-full sm:w-auto"
-                    onClick={() => void runAction(a.id, 'cancel')}
+                    onClick={() => void handleAction(a.id, 'cancel')}
                   >
                     Anular cita
                   </Button>
@@ -256,6 +284,15 @@ export function AppointmentsPage() {
           ))}
         </div>
       )}
+
+      <RescheduleModal
+        open={!!rescheduleTarget}
+        appointment={rescheduleTarget}
+        slug={businessSlug}
+        timezone={timezone}
+        onClose={() => setRescheduleTarget(null)}
+        onDone={() => void refresh()}
+      />
     </div>
   )
 }

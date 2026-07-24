@@ -26,6 +26,7 @@ import {
   TextLink,
 } from '../../shared/ui/feedback'
 import { WizardSteps } from '../../shared/ui/WizardSteps'
+import { PublicRescheduleRequestModal } from './PublicRescheduleRequestModal'
 
 type Step = 'service' | 'professional' | 'slot' | 'contact' | 'done'
 
@@ -47,6 +48,7 @@ export function PublicBookingPage() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [rescheduleOpen, setRescheduleOpen] = useState(false)
 
   const tz = business?.timezone || 'America/Bogota'
 
@@ -372,10 +374,28 @@ export function PublicBookingPage() {
           {slot ? (
             <p className="mt-3 font-medium tabular-nums">{formatInTimeZone(slot.starts_at, tz)}</p>
           ) : null}
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <Button
+              variant="secondary"
+              className="w-full sm:w-auto"
+              onClick={() => setRescheduleOpen(true)}
+            >
+              Solicitar reprogramación
+            </Button>
             <TextLink to={`/cancel/${appointmentId}`}>¿Necesitas cancelar?</TextLink>
           </div>
         </Card>
+      ) : null}
+
+      {appointmentId ? (
+        <PublicRescheduleRequestModal
+          open={rescheduleOpen}
+          slug={slug}
+          appointmentId={appointmentId}
+          defaultPhone={phone}
+          clientName={name}
+          onClose={() => setRescheduleOpen(false)}
+        />
       ) : null}
     </PublicLayout>
   )
