@@ -63,18 +63,18 @@ export function ShellFrame({
   }, [navOpen])
 
   const linkClass = (isActive: boolean) =>
-    `min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium transition duration-200 ease-out ${
+    `min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium transition duration-200 ease-out ${
       isActive
-        ? 'bg-brand-100 text-brand-800'
-        : 'text-slate-600 hover:translate-x-0.5 hover:bg-slate-50 motion-reduce:hover:translate-x-0'
+        ? 'bg-brand-50 text-brand-800 shadow-sm ring-1 ring-brand-200/70'
+        : 'text-slate-600 hover:bg-slate-50 hover:text-ink'
     }`
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[240px_1fr]">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
       {navOpen ? (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-ink/40 lg:hidden"
+          className="fixed inset-0 z-40 bg-ink/35 lg:hidden"
           aria-label="Cerrar menú"
           onClick={() => setNavOpen(false)}
         />
@@ -82,11 +82,11 @@ export function ShellFrame({
 
       <aside
         id="app-nav"
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100%,18rem)] flex-col border-r border-border bg-white/95 text-ink backdrop-blur transition-transform duration-200 ease-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(100%,18rem)] flex-col border-r border-border/80 bg-white/98 text-ink shadow-sm backdrop-blur-md transition-transform duration-200 ease-out lg:static lg:translate-x-0 ${
           navOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="px-5 py-5">
+        <div className="border-b border-border/70 px-5 py-5">
           <div className="flex flex-wrap items-center gap-2">
             <BrandLogo size="md" />
             <span className="sr-only">{brand}</span>
@@ -94,7 +94,7 @@ export function ShellFrame({
           </div>
           {subtitle ? <p className="mt-1 text-xs text-muted">{subtitle}</p> : null}
         </div>
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3" aria-label="Principal">
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4" aria-label="Principal">
           {links.map((l) => (
             <NavLink
               key={l.to}
@@ -109,11 +109,11 @@ export function ShellFrame({
       </aside>
 
       <div className="flex min-h-dvh min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-white/95 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border/80 bg-white/90 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-sm backdrop-blur-md sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 lg:hidden"
+              className="inline-flex size-11 items-center justify-center rounded-xl border border-border bg-white text-ink shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 lg:hidden"
               aria-expanded={navOpen}
               aria-controls="app-nav"
               aria-label={navOpen ? 'Cerrar menú' : 'Abrir menú'}
@@ -138,7 +138,7 @@ export function ShellFrame({
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 px-4 py-5 pb-5 sm:px-6 sm:py-6 lg:px-8">
+        <main className="min-w-0 flex-1 px-4 py-5 pb-6 sm:px-6 sm:py-7 lg:px-8">
           <div className="surface-enter mx-auto w-full max-w-6xl">
             <Outlet />
           </div>
@@ -155,7 +155,9 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <div className="surface-enter mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 sm:px-6">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandLogo size="lg" />
-          <p className="mt-3 text-sm text-muted">Gestión de citas para tu negocio</p>
+          <p className="mt-3 text-sm text-pretty text-muted">
+            Gestión de citas para tu negocio
+          </p>
         </div>
         {children}
       </div>

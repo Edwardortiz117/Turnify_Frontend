@@ -65,22 +65,22 @@ export function HomePage() {
         </Link>
       </div>
 
-      <Card className="mt-10 w-full max-w-md space-y-3 bg-card/80">
+      <Card className="mt-10 w-full max-w-md space-y-4">
         <form className="space-y-3" onSubmit={goToBooking}>
           <div>
             <Label htmlFor="home-slug">Reservar en un negocio</Label>
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-1 text-xs text-pretty text-muted">
               Ingresa el slug y te llevamos a su página de citas.
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-            <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border border-border bg-card focus-within:ring-2 focus-within:ring-brand-500">
+            <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-xl border border-border bg-card shadow-sm focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-500/25">
               <span className="flex items-center bg-slate-50 px-3 font-mono text-sm text-muted">
                 /
               </span>
               <Input
                 id="home-slug"
-                className="rounded-none border-0 focus:ring-0"
+                className="rounded-none border-0 shadow-none focus:ring-0"
                 placeholder="tu-negocio"
                 value={slug}
                 onChange={(e) => {

@@ -207,12 +207,12 @@ export function PublicBookingPage() {
 
   return (
     <PublicLayout>
-      <header className="mb-6 sm:mb-8">
+      <header className="mb-7 sm:mb-9">
         <BrandLogo size="md" className="!mx-0" />
-        <h1 className="mt-3 font-display text-3xl text-balance text-ink sm:text-4xl">
+        <h1 className="mt-3 font-display text-3xl tracking-tight text-balance text-ink sm:text-4xl">
           {business.name}
         </h1>
-        <p className="mt-2 text-sm text-pretty text-muted sm:text-base">
+        <p className="mt-2 max-w-xl text-sm text-pretty text-muted sm:text-base">
           Reserva tu cita en pocos pasos.
         </p>
       </header>

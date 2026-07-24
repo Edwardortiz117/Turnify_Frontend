@@ -6,7 +6,10 @@ export function Label({
   ...props
 }: LabelHTMLAttributes<HTMLLabelElement> & { children: ReactNode }) {
   return (
-    <label className={`mb-1.5 block text-sm font-medium text-slate-700 ${className}`} {...props}>
+    <label
+      className={`mb-1.5 block text-sm font-medium text-slate-600 ${className}`}
+      {...props}
+    >
       {children}
     </label>
   )

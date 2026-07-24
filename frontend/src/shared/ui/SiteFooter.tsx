@@ -9,8 +9,8 @@ export function SiteFooter({
 
   return (
     <footer
-      className={`mt-auto border-t border-border bg-white/80 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${
-        isCompact ? 'px-4 py-3 sm:px-6 lg:px-8' : 'px-4 py-6 sm:px-6 sm:py-8'
+      className={`mt-auto border-t border-border/80 bg-white/85 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm ${
+        isCompact ? 'px-4 py-3.5 sm:px-6 lg:px-8' : 'px-4 py-7 sm:px-6 sm:py-9'
       }`}
     >
       <div

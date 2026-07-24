@@ -54,7 +54,7 @@ function NotificationBellPanel({ source }: { source: NotificationSource }) {
       <button
         ref={buttonRef}
         type="button"
-        className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-white text-ink hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        className="relative inline-flex size-11 items-center justify-center rounded-xl border border-border bg-white text-ink shadow-sm transition duration-200 hover:border-brand-200 hover:bg-brand-50/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         aria-label={
           unreadCount > 0
             ? `Notificaciones, ${unreadCount} sin leer`
@@ -78,7 +78,7 @@ function NotificationBellPanel({ source }: { source: NotificationSource }) {
           id={panelId}
           role="region"
           aria-label="Lista de notificaciones"
-          className="absolute right-0 z-50 mt-2 w-[min(100vw-2rem,22rem)] rounded-xl border border-border bg-card shadow-lg"
+          className="absolute right-0 z-50 mt-2 w-[min(100vw-2rem,22rem)] rounded-2xl border border-border/90 bg-card shadow-lg ring-1 ring-slate-950/5"
         >
           <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
             <p className="text-sm font-semibold text-ink">Notificaciones</p>
