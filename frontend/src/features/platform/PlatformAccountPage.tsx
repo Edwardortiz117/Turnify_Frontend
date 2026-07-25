@@ -1,6 +1,6 @@
 import { useAuth } from '../../shared/auth/AuthContext'
 import { ChangePasswordCard } from '../auth/ChangePasswordCard'
-import { Card, PageHeader, Badge } from '../../shared/ui/feedback'
+import { Card, PageHeader, Badge } from '../../shared/ui'
 
 export const PlatformAccountPage = () => {
   const { session } = useAuth()

@@ -58,9 +58,10 @@ export default defineConfig(({ mode }) => {
           configure: (proxy) => {
             proxy.on('error', (err, _req, res) => {
               console.error(`[vite] proxy error → ${proxyTarget}`, err.message)
-              if (res && !res.headersSent && 'writeHead' in res) {
-                res.writeHead(502, { 'Content-Type': 'application/json' })
-                res.end(
+              const httpRes = res as { headersSent?: boolean; writeHead?: Function; end?: Function }
+              if (httpRes && !httpRes.headersSent && typeof httpRes.writeHead === 'function') {
+                httpRes.writeHead(502, { 'Content-Type': 'application/json' })
+                httpRes.end?.(
                   JSON.stringify({
                     error: {
                       code: 'PROXY_ERROR',

@@ -1,4 +1,4 @@
-import { apiRequest } from '../../shared/api/client'
+import { apiRequest } from './client'
 import type {
   Appointment,
   AvailableSlots,
@@ -7,7 +7,7 @@ import type {
   PublicBusiness,
   Service,
   Slot,
-} from '../../shared/api/types'
+} from './types'
 
 export function getBusinessBySlug(slug: string) {
   return apiRequest<PublicBusiness>(`/public/businesses/${encodeURIComponent(slug)}`)

@@ -1,20 +1,19 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
-import { getProfile, updateProfile } from '../catalog/businessApi'
+import { useEffect, useState, type SubmitEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
+import { getProfile, updateProfile } from '../../shared/api/business'
 import type { Business } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { ChangePasswordCard } from '../auth/ChangePasswordCard'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Badge, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
+import { Alert, Button, ConfirmDialog, FormFieldInput, Badge, Card, EmptyState, PageHeader, PageLoading, TextLink } from '../../shared/ui'
 
-export const ProfilePage = () => {
+export function ProfilePage() {
   const [profile, setProfile] = useState<Business | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [toggling, setToggling] = useState(false)
+  const [confirmClose, setConfirmClose] = useState(false)
 
   const loadProfile = async () => {
     setLoading(true)
@@ -33,30 +32,11 @@ export const ProfilePage = () => {
     void loadProfile()
   }, [])
 
-  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!profile) return
-    setProfile({ ...profile, name: e.target.value })
-  }
-
-  const handleSlugChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!profile) return
-    setProfile({ ...profile, slug: e.target.value })
-  }
-
-  const handleCancellationHoursChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!profile) return
-    setProfile({
-      ...profile,
-      cancellation_min_hours: Number(e.target.value),
-    })
-  }
-
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!profile) return
-
     setError(null)
-    setSuccess(null)
+    setSaving(true)
     try {
       const updated = await updateProfile({
         name: profile.name,
@@ -64,26 +44,27 @@ export const ProfilePage = () => {
         cancellation_min_hours: profile.cancellation_min_hours,
       })
       setProfile(updated)
-      setSuccess('Perfil actualizado.')
+      toast.success('Perfil actualizado')
     } catch (err) {
       setError(getErrorMessage(err))
+    } finally {
+      setSaving(false)
     }
   }
 
   const handleToggleOpenClosed = async () => {
     if (!profile) return
-
     const next = profile.status === 'suspended' ? 'active' : 'suspended'
     setError(null)
-    setSuccess(null)
     setToggling(true)
     try {
       const updated = await updateProfile({ status: next })
       setProfile({ ...profile, ...updated })
-      setSuccess(
+      setConfirmClose(false)
+      toast.success(
         next === 'suspended'
-          ? 'Negocio cerrado: la vitrina pública no acepta reservas. Sigues en el panel.'
-          : 'Negocio abierto: la vitrina pública vuelve a aceptar reservas.',
+          ? 'Negocio cerrado: la vitrina no acepta reservas'
+          : 'Negocio abierto: la vitrina acepta reservas',
       )
     } catch (err) {
       setError(getErrorMessage(err))
@@ -97,7 +78,7 @@ export const ProfilePage = () => {
   if (!profile) {
     return (
       <div className="mx-auto w-full max-w-2xl">
-        <PageHeader title="Ajustes" subtitle="Negocio, disponibilidad y contraseña" />
+        <PageHeader title="Ajustes" subtitle="Negocio, vitrina y contraseña" />
         {error ? (
           <div className="mb-3">
             <Alert>{error}</Alert>
@@ -117,19 +98,14 @@ export const ProfilePage = () => {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <PageHeader title="Ajustes" subtitle="Negocio, disponibilidad y contraseña" />
+      <PageHeader title="Ajustes" subtitle="Negocio, vitrina y contraseña" />
       {error ? (
         <div className="mb-3">
           <Alert>{error}</Alert>
         </div>
       ) : null}
-      {success ? (
-        <div className="mb-3">
-          <Alert tone="success">{success}</Alert>
-        </div>
-      ) : null}
 
-      <Card className="mb-4 space-y-3">
+      <Card className="mb-4 space-y-3" interactive>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink">Estado de la vitrina</p>
@@ -137,74 +113,92 @@ export const ProfilePage = () => {
               Cerrar solo afecta reservas públicas. No bloquea tu acceso al panel.
             </p>
           </div>
-          <Badge tone={isOpen ? 'success' : 'warning'}>
-            {isOpen ? 'Abierto' : 'Cerrado'}
-          </Badge>
+          <Badge tone={isOpen ? 'success' : 'warning'}>{isOpen ? 'Abierto' : 'Cerrado'}</Badge>
         </div>
-        <Button
-          variant={isOpen ? 'danger' : 'primary'}
-          className="w-full sm:w-auto"
-          disabled={toggling}
-          aria-busy={toggling}
-          aria-pressed={!isOpen}
-          onClick={() => void handleToggleOpenClosed()}
-        >
-          {toggling ? 'Actualizando…' : isOpen ? 'Cerrar negocio' : 'Abrir negocio'}
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button
+            variant={isOpen ? 'danger' : 'primary'}
+            className="w-full sm:w-auto"
+            disabled={toggling}
+            aria-busy={toggling}
+            aria-pressed={!isOpen}
+            onClick={() => {
+              if (isOpen) setConfirmClose(true)
+              else void handleToggleOpenClosed()
+            }}
+          >
+            {toggling ? 'Actualizando…' : isOpen ? 'Cerrar negocio' : 'Abrir negocio'}
+          </Button>
+          <TextLink to={`/${profile.slug}`}>Ver vitrina pública</TextLink>
+        </div>
       </Card>
 
-      <Card className="mb-4">
+      <Card className="mb-4" interactive>
         <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
+          <FormFieldInput
+            id="business-name"
+            label="Nombre"
+            className="sm:col-span-2"
+            value={profile.name}
+            onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+            autoComplete="organization"
+          />
+          <FormFieldInput
+            id="business-slug"
+            label="Slug"
+            value={profile.slug}
+            onChange={(e) => setProfile({ ...profile, slug: e.target.value })}
+            autoComplete="off"
+            spellCheck={false}
+            hint={`URL pública: /${profile.slug || '…'}`}
+          />
+          <FormFieldInput
+            id="cancellation-hours"
+            label="Horas mín. para cancelar"
+            type="number"
+            min={0}
+            value={profile.cancellation_min_hours ?? 0}
+            onChange={(e) =>
+              setProfile({ ...profile, cancellation_min_hours: Number(e.target.value) })
+            }
+          />
+          <FormFieldInput
+            id="business-timezone"
+            label="Timezone"
+            className="sm:col-span-2"
+            value={profile.timezone ?? 'America/Bogota'}
+            disabled
+            readOnly
+            hint="Solo lectura (el API no permite editarlo aquí)."
+          />
           <div className="sm:col-span-2">
-            <Label htmlFor="business-name">Nombre</Label>
-            <Input
-              id="business-name"
-              value={profile.name}
-              onChange={handleNameChange}
-              autoComplete="organization"
-            />
-          </div>
-          <div>
-            <Label htmlFor="business-slug">Slug</Label>
-            <Input
-              id="business-slug"
-              value={profile.slug}
-              onChange={handleSlugChange}
-              autoComplete="off"
-              spellCheck={false}
-            />
-          </div>
-          <div>
-            <Label htmlFor="cancellation-hours">Horas mín. para cancelar</Label>
-            <Input
-              id="cancellation-hours"
-              type="number"
-              min={0}
-              value={profile.cancellation_min_hours ?? 0}
-              onChange={handleCancellationHoursChange}
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <Label htmlFor="business-timezone">Timezone</Label>
-            <Input
-              id="business-timezone"
-              value={profile.timezone ?? 'America/Bogota'}
-              disabled
-              readOnly
-            />
-            <p className="mt-1 text-xs text-muted">
-              Solo lectura (el API no permite editarlo aquí).
-            </p>
-          </div>
-          <div className="sm:col-span-2">
-            <Button type="submit" className="w-full sm:w-auto">
-              Guardar perfil
+            <Button type="submit" className="w-full sm:w-auto" disabled={saving}>
+              {saving ? 'Guardando…' : 'Guardar perfil'}
             </Button>
           </div>
         </form>
       </Card>
 
+      <div className="mb-4 rounded-xl border border-dashed border-border bg-card px-4 py-3 text-sm text-muted">
+        Horarios del equipo se editan en{' '}
+        <Link className="font-semibold text-brand-700 hover:underline" to="/app/availability">
+          Disponibilidad
+        </Link>
+        .
+      </div>
+
       <ChangePasswordCard />
+
+      <ConfirmDialog
+        open={confirmClose}
+        title="Cerrar la vitrina"
+        description="Los clientes no podrán reservar en la URL pública. Tú seguirás pudiendo entrar al panel."
+        confirmLabel="Cerrar negocio"
+        danger
+        loading={toggling}
+        onClose={() => setConfirmClose(false)}
+        onConfirm={() => void handleToggleOpenClosed()}
+      />
     </div>
   )
 }

@@ -4,7 +4,7 @@ import {
   getWeeklySchedule,
   listAppointments,
   listProfessionals,
-} from '../catalog/businessApi'
+} from '../../shared/api/business'
 import { readRescheduleRequests } from '../../shared/storage/rescheduleRequestStorage'
 import { endOfDayIso, startOfDayIso, toDateInputValue } from '../../shared/datetime'
 import { buildBusinessNotifications } from './buildBusinessNotifications'

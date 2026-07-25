@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { cn } from '../../lib/cn'
 
 const FOCUSABLE =
   'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -11,7 +12,7 @@ type ModalProps = {
   className?: string
 }
 
-export const Modal = ({ open, title, onClose, children, className = '' }: ModalProps) => {
+export function Modal({ open, title, onClose, children, className = '' }: ModalProps) {
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
   const previousFocus = useRef<HTMLElement | null>(null)
@@ -26,12 +27,10 @@ export const Modal = ({ open, title, onClose, children, className = '' }: ModalP
     document.body.style.overflow = 'hidden'
 
     const panel = panelRef.current
-    const initial = panel?.querySelectorAll<HTMLElement>(FOCUSABLE)
-    // Prefer first field over the header close button
     const preferred =
       panel?.querySelector<HTMLElement>(
         'input:not([disabled]),textarea:not([disabled]),select:not([disabled])',
-      ) ?? initial?.[0]
+      ) ?? panel?.querySelectorAll<HTMLElement>(FOCUSABLE)?.[0]
     preferred?.focus()
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -69,7 +68,7 @@ export const Modal = ({ open, title, onClose, children, className = '' }: ModalP
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
       <div
-        className="absolute inset-0 bg-ink/40"
+        className="modal-backdrop-enter absolute inset-0 bg-ink/40"
         aria-hidden
         onClick={() => onCloseRef.current()}
       />
@@ -78,15 +77,18 @@ export const Modal = ({ open, title, onClose, children, className = '' }: ModalP
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`relative z-10 max-h-[min(90dvh,40rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-border/90 bg-card p-4 shadow-lg ring-1 ring-slate-950/10 sm:p-5 ${className}`}
+        className={cn(
+          'modal-panel-enter relative z-10 max-h-[min(90dvh,40rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-4 shadow-lg sm:p-5',
+          className,
+        )}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
-          <h2 id={titleId} className="font-display text-xl text-balance text-ink">
+          <h2 id={titleId} className="text-xl font-bold tracking-tight text-balance text-ink">
             {title}
           </h2>
           <button
             type="button"
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-border text-ink transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-border text-ink transition-colors hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
             aria-label="Cerrar diálogo"
             onClick={() => onCloseRef.current()}
           >

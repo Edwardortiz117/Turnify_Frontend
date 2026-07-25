@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listAppointments } from '../catalog/businessApi'
+import { listAppointments } from '../../shared/api/business'
 import type { Appointment } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import {
@@ -9,10 +9,7 @@ import {
   startOfDayIso,
   toDateInputValue,
 } from '../../shared/datetime'
-import { Alert } from '../../shared/ui/Alert'
-import { AppointmentStatusBadge } from '../../shared/ui/AppointmentStatusBadge'
-import { Button } from '../../shared/ui/Button'
-import { Card, Spinner } from '../../shared/ui/feedback'
+import { Alert, AppointmentStatusBadge, Button, Card, Spinner } from '../../shared/ui'
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const
 
@@ -125,7 +122,7 @@ export function WeekAgenda() {
     <Card className="mt-4">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h2 className="font-display text-xl text-ink">Agenda de la semana</h2>
+          <h2 className="font-bold tracking-tight text-xl text-ink">Agenda de la semana</h2>
           <p className="mt-0.5 text-sm text-muted tabular-nums">{formatWeekRange(weekDays)}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -192,7 +189,7 @@ export function WeekAgenda() {
                       {DAY_LABELS[i]}
                     </p>
                     <p
-                      className={`font-display text-lg tabular-nums ${
+                      className={`font-bold tracking-tight text-lg tabular-nums ${
                         isToday ? 'text-brand-800' : 'text-ink'
                       }`}
                     >

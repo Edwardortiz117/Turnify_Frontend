@@ -1,10 +1,6 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { useState, type ChangeEvent, type SubmitEvent } from 'react'
 import { addRescheduleRequest } from '../../shared/storage/rescheduleRequestStorage'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Modal } from '../../shared/ui/Modal'
+import { Alert, Button, Input, Label, Modal } from '../../shared/ui'
 
 type PublicRescheduleRequestModalProps = {
   open: boolean
@@ -43,7 +39,7 @@ export const PublicRescheduleRequestModal = ({
     onClose()
   }
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: SubmitEvent) => {
     e.preventDefault()
     setError(null)
     const trimmed = message.trim()

@@ -1,13 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { forgotPassword } from './api'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { AuthLayout } from '../../shared/ui/layouts'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Card, TextLink } from '../../shared/ui/feedback'
+import { AuthLayout, Alert, Button, Card, FormFieldInput, TextLink } from '../../shared/ui'
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -16,7 +11,7 @@ export function ForgotPasswordPage() {
   const [resetToken, setResetToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: SubmitEvent) {
     e.preventDefault()
     setError(null)
     setMessage(null)
@@ -24,12 +19,8 @@ export function ForgotPasswordPage() {
     setLoading(true)
     try {
       const res = await forgotPassword({ email })
-      setMessage(
-        'Si el correo existe, enviamos instrucciones para restablecer la contraseña.',
-      )
-      if (res.reset_token) {
-        setResetToken(res.reset_token)
-      }
+      setMessage('Si el correo existe, enviamos instrucciones para restablecer la contraseña.')
+      if (res.reset_token) setResetToken(res.reset_token)
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
@@ -39,12 +30,20 @@ export function ForgotPasswordPage() {
 
   return (
     <AuthLayout>
-      <Card>
-        <h1 className="mb-4 font-display text-2xl text-balance text-ink">
+      <Card interactive>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-balance text-ink">
           Recuperar contraseña
         </h1>
-        {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
-        {message ? <div className="mb-3"><Alert tone="success">{message}</Alert></div> : null}
+        {error ? (
+          <div className="mb-3">
+            <Alert>{error}</Alert>
+          </div>
+        ) : null}
+        {message ? (
+          <div className="mb-3">
+            <Alert tone="success">{message}</Alert>
+          </div>
+        ) : null}
         {resetToken ? (
           <div className="mb-3 rounded-lg border border-border bg-brand-50 p-3 text-sm">
             <p className="font-semibold text-brand-800">Token de desarrollo</p>
@@ -57,17 +56,15 @@ export function ForgotPasswordPage() {
           </div>
         ) : null}
         <form className="space-y-4" onSubmit={onSubmit}>
-          <div>
-            <Label htmlFor="email">Correo</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </div>
+          <FormFieldInput
+            id="email"
+            label="Correo"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Enviando…' : 'Enviar enlace'}
           </Button>

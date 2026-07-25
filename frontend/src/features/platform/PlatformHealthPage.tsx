@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react'
 import { getPlatformHealth } from './api'
 import type { PlatformHealth } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { Alert } from '../../shared/ui/Alert'
-import { Badge, Card, PageHeader, PageLoading } from '../../shared/ui/feedback'
-import { Button } from '../../shared/ui/Button'
+import { Alert, Badge, Card, PageHeader, PageLoading, Button } from '../../shared/ui'
 
 function formatUptime(seconds: number): string {
   const h = Math.floor(seconds / 3600)

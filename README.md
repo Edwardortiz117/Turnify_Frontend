@@ -4,6 +4,8 @@ SaaS MVP frontend for appointment management (San José de Cúcuta).
 
 ## Structure
 
+- `PRODUCT.md` / `DESIGN.md` — product truth + design system
+- `docs/architecture.md` — frontend architecture & ADRs
 - `docs/design/` — Product/UX/architecture design (points 1–10)
 - `docs/frontend-api-contract.md` — API contract for the UI
 - `docs/qa-smoke-checklist.md` — Smoke / CORS / multi-tenant checklist

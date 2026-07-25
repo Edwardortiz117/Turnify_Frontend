@@ -1,4 +1,6 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type SubmitEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import {
   cancelAppointment,
   completeAppointment,
@@ -8,20 +10,15 @@ import {
   listProfessionals,
   listServices,
   noShowAppointment,
-} from '../catalog/businessApi'
+} from '../../shared/api/business'
 import { RescheduleModal } from './RescheduleModal'
 import type { Appointment, Professional, Service } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { endOfDayIso, formatInTimeZone, startOfDayIso, toDateInputValue } from '../../shared/datetime'
-import { Alert } from '../../shared/ui/Alert'
-import { AppointmentStatusBadge } from '../../shared/ui/AppointmentStatusBadge'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Select } from '../../shared/ui/Select'
-import { Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
+import { Alert, AppointmentStatusBadge, Button, ConfirmDialog, Input, Label, Select, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui'
 
 export const AppointmentsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [from, setFrom] = useState(toDateInputValue())
   const [to, setTo] = useState(toDateInputValue())
   const [items, setItems] = useState<Appointment[]>([])
@@ -31,6 +28,8 @@ export const AppointmentsPage = () => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null)
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
+  const [actionLoading, setActionLoading] = useState(false)
   const [businessSlug, setBusinessSlug] = useState('')
   const [timezone, setTimezone] = useState('America/Bogota')
 
@@ -40,6 +39,15 @@ export const AppointmentsPage = () => {
   const [clientName, setClientName] = useState('')
   const [clientPhone, setClientPhone] = useState('')
   const [forced, setForced] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setShowForm(true)
+      const next = new URLSearchParams(searchParams)
+      next.delete('new')
+      setSearchParams(next, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   const refresh = async () => {
     setLoading(true)
@@ -60,6 +68,7 @@ export const AppointmentsPage = () => {
 
   useEffect(() => {
     void refresh()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh on date range only
   }, [from, to])
 
   useEffect(() => {
@@ -75,7 +84,7 @@ export const AppointmentsPage = () => {
       .catch(() => undefined)
   }, [])
 
-  const handleCreate = async (e: FormEvent) => {
+  const handleCreate = async (e: SubmitEvent) => {
     e.preventDefault()
     setError(null)
     try {
@@ -89,24 +98,33 @@ export const AppointmentsPage = () => {
       setShowForm(false)
       setClientName('')
       setClientPhone('')
+      toast.success('Cita creada')
       await refresh()
     } catch (err) {
       setError(getErrorMessage(err))
     }
   }
 
-  const handleAction = async (
-    id: string,
-    action: 'cancel' | 'complete' | 'no_show',
-  ) => {
+  const handleAction = async (id: string, action: 'cancel' | 'complete' | 'no_show') => {
     setError(null)
+    setActionLoading(true)
     try {
       if (action === 'cancel') await cancelAppointment(id)
       if (action === 'complete') await completeAppointment(id)
       if (action === 'no_show') await noShowAppointment(id)
+      toast.success(
+        action === 'cancel'
+          ? 'Cita anulada'
+          : action === 'complete'
+            ? 'Marcada como completada'
+            : 'Marcada como no asistió',
+      )
+      setConfirmCancelId(null)
       await refresh()
     } catch (err) {
       setError(getErrorMessage(err))
+    } finally {
+      setActionLoading(false)
     }
   }
 
@@ -126,7 +144,7 @@ export const AppointmentsPage = () => {
         subtitle="Citas del período seleccionado"
         actions={
           <Button className="w-full sm:w-auto" onClick={() => setShowForm((v) => !v)}>
-            Nueva cita
+            {showForm ? 'Cerrar formulario' : 'Nueva cita'}
           </Button>
         }
       />
@@ -157,7 +175,7 @@ export const AppointmentsPage = () => {
       ) : null}
 
       {showForm ? (
-        <Card className="mb-4">
+        <Card className="mb-4" interactive>
           <h2 className="mb-3 font-semibold">Cita asistida</h2>
           <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleCreate}>
             <div>
@@ -232,7 +250,7 @@ export const AppointmentsPage = () => {
           onAction={() => setShowForm(true)}
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {items.map((a) => (
             <Card
               key={a.id}
@@ -252,20 +270,23 @@ export const AppointmentsPage = () => {
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                   <Button
                     variant="secondary"
+                    size="sm"
                     className="w-full sm:w-auto"
                     onClick={() => void handleAction(a.id, 'complete')}
                   >
-                    Marcar completada
+                    Completada
                   </Button>
                   <Button
                     variant="secondary"
+                    size="sm"
                     className="w-full sm:w-auto"
                     onClick={() => void handleAction(a.id, 'no_show')}
                   >
-                    Marcar no asistió
+                    No asistió
                   </Button>
                   <Button
                     variant="secondary"
+                    size="sm"
                     className="w-full sm:w-auto"
                     onClick={() => handleOpenReschedule(a)}
                   >
@@ -273,10 +294,11 @@ export const AppointmentsPage = () => {
                   </Button>
                   <Button
                     variant="danger"
+                    size="sm"
                     className="w-full sm:w-auto"
-                    onClick={() => void handleAction(a.id, 'cancel')}
+                    onClick={() => setConfirmCancelId(a.id)}
                   >
-                    Anular cita
+                    Anular
                   </Button>
                 </div>
               ) : null}
@@ -292,6 +314,19 @@ export const AppointmentsPage = () => {
         timezone={timezone}
         onClose={() => setRescheduleTarget(null)}
         onDone={() => void refresh()}
+      />
+
+      <ConfirmDialog
+        open={!!confirmCancelId}
+        title="Anular cita"
+        description="Esta acción cancela la cita confirmada. El cliente deberá reservar de nuevo si lo necesita."
+        confirmLabel="Anular cita"
+        danger
+        loading={actionLoading}
+        onClose={() => setConfirmCancelId(null)}
+        onConfirm={() => {
+          if (confirmCancelId) void handleAction(confirmCancelId, 'cancel')
+        }}
       />
     </div>
   )

@@ -1,12 +1,6 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type SubmitEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { PublicLayout } from '../../shared/ui/layouts'
-import { Alert } from '../../shared/ui/Alert'
-import { BrandLogo } from '../../shared/ui/BrandLogo'
-import { Card } from '../../shared/ui/feedback'
+import { Button, Input, Label, PublicLayout, Alert, BrandLogo, Card } from '../../shared/ui'
 
 function slugify(value: string) {
   return value
@@ -34,7 +28,7 @@ export function HomePage() {
   const [slug, setSlug] = useState(remembered)
   const [error, setError] = useState<string | null>(null)
 
-  function goToBooking(e: FormEvent) {
+  function goToBooking(e: SubmitEvent) {
     e.preventDefault()
     const clean = slugify(slug.trim())
     if (!clean) {
@@ -48,7 +42,7 @@ export function HomePage() {
   return (
     <PublicLayout wide center>
       <BrandLogo size="lg" />
-      <h1 className="mt-4 font-display text-4xl leading-tight text-balance text-ink sm:text-5xl lg:text-6xl">
+      <h1 className="mt-4 font-bold tracking-tight text-4xl leading-tight text-balance text-ink sm:text-5xl lg:text-6xl">
         Citas claras para negocios de Cúcuta
       </h1>
       <p className="mt-4 max-w-xl text-base text-pretty text-muted sm:text-lg">
@@ -74,7 +68,7 @@ export function HomePage() {
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-            <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-xl border border-border bg-card shadow-sm focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-500/25">
+            <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border border-border bg-card shadow-sm focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-500/20">
               <span className="flex items-center bg-slate-50 px-3 font-mono text-sm text-muted">
                 /
               </span>

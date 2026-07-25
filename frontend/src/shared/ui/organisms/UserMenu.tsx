@@ -68,7 +68,7 @@ export function UserMenu({
           id={menuId}
           role="menu"
           aria-label="Cuenta"
-          className="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-border/90 bg-card py-1.5 shadow-lg ring-1 ring-slate-950/5"
+          className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl border border-border bg-card py-1.5 shadow-lg"
         >
           {email ? (
             <p className="truncate border-b border-border px-3 py-2 text-xs text-muted" role="none">

@@ -1,13 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { resetPassword } from './api'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { AuthLayout } from '../../shared/ui/layouts'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Card } from '../../shared/ui/feedback'
+import { AuthLayout, Alert, Button, Card, FormFieldInput } from '../../shared/ui'
 
 export function ResetPasswordPage() {
   const [params] = useSearchParams()
@@ -15,18 +11,16 @@ export function ResetPasswordPage() {
   const [token, setToken] = useState(params.get('token') ?? '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: SubmitEvent) {
     e.preventDefault()
     setError(null)
-    setMessage(null)
     setLoading(true)
     try {
       await resetPassword({ token: token.trim(), password })
-      setMessage('Contraseña actualizada. Ya puedes iniciar sesión.')
-      setTimeout(() => navigate('/login', { replace: true }), 1200)
+      toast.success('Contraseña actualizada')
+      navigate('/login', { replace: true })
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
@@ -36,35 +30,35 @@ export function ResetPasswordPage() {
 
   return (
     <AuthLayout>
-      <Card>
-        <h1 className="mb-4 font-display text-2xl text-balance text-ink">
+      <Card interactive>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-balance text-ink">
           Nueva contraseña
         </h1>
-        {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
-        {message ? <div className="mb-3"><Alert tone="success">{message}</Alert></div> : null}
+        {error ? (
+          <div className="mb-3">
+            <Alert>{error}</Alert>
+          </div>
+        ) : null}
         <form className="space-y-4" onSubmit={onSubmit}>
-          <div>
-            <Label htmlFor="token">Token de restablecimiento</Label>
-            <Input
-              id="token"
-              required
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              autoComplete="off"
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Nueva contraseña</Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </div>
+          <FormFieldInput
+            id="token"
+            label="Token de restablecimiento"
+            required
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            autoComplete="off"
+          />
+          <FormFieldInput
+            id="password"
+            label="Nueva contraseña"
+            type="password"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+            hint="Mínimo 8 caracteres."
+          />
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Guardando…' : 'Restablecer'}
           </Button>

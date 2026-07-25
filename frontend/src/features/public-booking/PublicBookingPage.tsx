@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type SubmitEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   createPublicAppointment,
@@ -6,29 +6,28 @@ import {
   listProfessionalsForService,
   listPublicServices,
   listSlots,
-} from './api'
+} from '../../shared/api/public'
 import type { Professional, PublicBusiness, Service, Slot } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { ApiError } from '../../shared/api/ApiError'
-import { formatInTimeZone, formatTimeInZone, toDateInputValue } from '../../shared/datetime'
-import { PublicLayout } from '../../shared/ui/layouts'
-import { BrandLogo } from '../../shared/ui/BrandLogo'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import {
-  Card,
-  EmptyState,
-  PageLoading,
-  selectableCardClass,
-  Spinner,
-  TextLink,
-} from '../../shared/ui/feedback'
-import { WizardSteps } from '../../shared/ui/WizardSteps'
+import { toDateInputValue } from '../../shared/datetime'
+import { PublicLayout, BrandLogo, Alert, EmptyState, PageLoading, TextLink, WizardSteps } from '../../shared/ui'
 import { PublicRescheduleRequestModal } from './PublicRescheduleRequestModal'
+import { BookingContactStep } from './components/BookingContactStep'
+import { BookingProfessionalStep } from './components/BookingProfessionalStep'
+import { BookingServiceStep } from './components/BookingServiceStep'
+import { BookingSlotStep } from './components/BookingSlotStep'
+import { BookingSuccessStep } from './components/BookingSuccessStep'
 
 type Step = 'service' | 'professional' | 'slot' | 'contact' | 'done'
+
+function rememberedPhone(slug: string): string {
+  try {
+    return localStorage.getItem(`turnify.phone.${slug}`) ?? ''
+  } catch {
+    return ''
+  }
+}
 
 export function PublicBookingPage() {
   const { slug = '' } = useParams()
@@ -42,7 +41,7 @@ export function PublicBookingPage() {
   const [date, setDate] = useState(toDateInputValue())
   const [slot, setSlot] = useState<Slot | null>(null)
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [phone, setPhone] = useState(() => rememberedPhone(slug))
   const [email, setEmail] = useState('')
   const [appointmentId, setAppointmentId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -51,15 +50,20 @@ export function PublicBookingPage() {
   const [rescheduleOpen, setRescheduleOpen] = useState(false)
 
   const tz = business?.timezone || 'America/Bogota'
+  const stepsLabel = useMemo(() => ['Servicio', 'Profesional', 'Horario', 'Datos'], [])
 
   useEffect(() => {
-    let cancelled = false
+    setPhone(rememberedPhone(slug))
+  }, [slug])
+
+  useEffect(() => {
+    const controller = new AbortController()
     async function load() {
       setLoading(true)
       setError(null)
       try {
         const biz = await getBusinessBySlug(slug)
-        if (cancelled) return
+        if (controller.signal.aborted) return
         if (biz.status === 'suspended') {
           setError('BUSINESS_SUSPENDED')
           setBusiness(biz)
@@ -69,76 +73,64 @@ export function PublicBookingPage() {
         const svc =
           biz.services?.filter((s) => s.active) ??
           (await listPublicServices(slug)).filter((s) => s.active)
-        setServices(svc)
+        if (!controller.signal.aborted) setServices(svc)
       } catch (err) {
-        if (!cancelled) {
-          if (err instanceof ApiError && err.code === 'BUSINESS_SUSPENDED') {
-            setError('BUSINESS_SUSPENDED')
-          } else {
-            setError(getErrorMessage(err))
-          }
+        if (controller.signal.aborted) return
+        if (err instanceof ApiError && err.code === 'BUSINESS_SUSPENDED') {
+          setError('BUSINESS_SUSPENDED')
+        } else {
+          setError(getErrorMessage(err))
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!controller.signal.aborted) setLoading(false)
       }
     }
     void load()
-    return () => {
-      cancelled = true
-    }
+    return () => controller.abort()
   }, [slug])
 
   useEffect(() => {
     if (!service) return
-    let cancelled = false
+    const controller = new AbortController()
     async function loadPros() {
       setBusy(true)
       setError(null)
       try {
         const list = await listProfessionalsForService(slug, service!.id)
-        if (!cancelled) {
+        if (!controller.signal.aborted) {
           setProfessionals(list.filter((p) => p.status === 'active'))
           setStep('professional')
         }
       } catch (err) {
-        if (!cancelled) setError(getErrorMessage(err))
+        if (!controller.signal.aborted) setError(getErrorMessage(err))
       } finally {
-        if (!cancelled) setBusy(false)
+        if (!controller.signal.aborted) setBusy(false)
       }
     }
     void loadPros()
-    return () => {
-      cancelled = true
-    }
+    return () => controller.abort()
   }, [service, slug])
 
   useEffect(() => {
     if (!service || !professional || step !== 'slot') return
-    let cancelled = false
+    const controller = new AbortController()
     async function loadSlots() {
       setBusy(true)
       setError(null)
       try {
         const list = await listSlots(slug, professional!.id, service!.id, date)
-        if (!cancelled) setSlots(list)
+        if (!controller.signal.aborted) setSlots(list)
       } catch (err) {
-        if (!cancelled) setError(getErrorMessage(err))
+        if (!controller.signal.aborted) setError(getErrorMessage(err))
       } finally {
-        if (!cancelled) setBusy(false)
+        if (!controller.signal.aborted) setBusy(false)
       }
     }
     void loadSlots()
-    return () => {
-      cancelled = true
-    }
+    return () => controller.abort()
   }, [service, professional, date, step, slug])
 
-  const stepsLabel = useMemo(
-    () => ['Servicio', 'Profesional', 'Horario', 'Datos'],
-    [],
-  )
-
-  async function submit(e: FormEvent) {
+  async function submit(e: SubmitEvent) {
     e.preventDefault()
     if (!service || !professional || !slot) return
     setBusy(true)
@@ -156,16 +148,19 @@ export function PublicBookingPage() {
         idem,
       )
       setAppointmentId(appt.id)
-      localStorage.setItem(
-        'turnify.lastAppointment',
-        JSON.stringify({ id: appt.id, slug, phone }),
-      )
+      try {
+        localStorage.setItem(
+          'turnify.lastAppointment',
+          JSON.stringify({ id: appt.id, slug, phone }),
+        )
+        localStorage.setItem(`turnify.phone.${slug}`, phone)
+      } catch {
+        /* ignore quota */
+      }
       setStep('done')
     } catch (err) {
       if (err instanceof ApiError && err.code === 'CLIENT_BLOCKED') {
-        setError(
-          'Este teléfono está bloqueado y no puede reservar. Contacta al negocio.',
-        )
+        setError('Este teléfono está bloqueado y no puede reservar. Contacta al negocio.')
       } else {
         setError(getErrorMessage(err))
       }
@@ -186,7 +181,7 @@ export function PublicBookingPage() {
     )
   }
 
-  if (error === 'BUSINESS_SUSPENDED' || (business?.status === 'suspended')) {
+  if (error === 'BUSINESS_SUSPENDED' || business?.status === 'suspended') {
     return (
       <PublicLayout>
         <EmptyState
@@ -214,7 +209,7 @@ export function PublicBookingPage() {
           <BrandLogo size="md" className="!mx-0" />
           <TextLink to={`/${slug}/mis-citas`}>Mis citas</TextLink>
         </div>
-        <h1 className="mt-3 font-display text-3xl tracking-tight text-balance text-ink sm:text-4xl">
+        <h1 className="mt-3 text-3xl font-bold tracking-tight text-balance text-ink sm:text-4xl">
           {business.name}
         </h1>
         <p className="mt-2 max-w-xl text-sm text-pretty text-muted sm:text-base">
@@ -227,168 +222,84 @@ export function PublicBookingPage() {
       ) : null}
 
       {error && error !== 'BUSINESS_SUSPENDED' ? (
-        <div className="mb-4"><Alert>{error}</Alert></div>
+        <div className="mb-4">
+          <Alert>{error}</Alert>
+        </div>
       ) : null}
 
       {step === 'service' ? (
-        <div className="space-y-3">
-          {services.length === 0 ? (
-            <EmptyState title="Sin servicios" description="Este negocio aún no publicó servicios." />
-          ) : (
-            services.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                className={selectableCardClass}
-                onClick={() => {
-                  setService(s)
-                  setProfessional(null)
-                  setSlot(null)
-                }}
-              >
-                <p className="font-semibold">{s.name}</p>
-                <p className="text-sm text-muted">{s.duration_minutes} min</p>
-              </button>
-            ))
-          )}
-        </div>
+        <BookingServiceStep
+          services={services}
+          selectedId={service?.id}
+          onSelect={(s) => {
+            setService(s)
+            setProfessional(null)
+            setSlot(null)
+          }}
+        />
       ) : null}
 
       {step === 'professional' ? (
-        <div className="space-y-3">
-          <Button variant="ghost" onClick={() => { setService(null); setStep('service') }}>
-            ← Cambiar servicio
-          </Button>
-          {busy ? <Spinner /> : null}
-          {!busy && professionals.length === 0 ? (
-            <EmptyState title="Sin profesionales" description="Nadie ofrece este servicio ahora." />
-          ) : null}
-          {professionals.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className={selectableCardClass}
-              onClick={() => {
-                setProfessional(p)
-                setStep('slot')
-              }}
-            >
-              <p className="font-semibold">{p.name}</p>
-            </button>
-          ))}
-        </div>
+        <BookingProfessionalStep
+          professionals={professionals}
+          busy={busy}
+          selectedId={professional?.id}
+          onBack={() => {
+            setService(null)
+            setStep('service')
+          }}
+          onSelect={(p) => {
+            setProfessional(p)
+            setStep('slot')
+          }}
+        />
       ) : null}
 
       {step === 'slot' && professional && service ? (
-        <Card className="space-y-4">
-          <Button variant="ghost" onClick={() => setStep('professional')}>
-            ← Cambiar profesional
-          </Button>
-          <div>
-            <Label htmlFor="date">Fecha</Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              min={toDateInputValue()}
-              onChange={(e) => {
-                setDate(e.target.value)
-                setSlot(null)
-              }}
-            />
-          </div>
-          {busy ? <Spinner /> : null}
-          {!busy && slots.length === 0 ? (
-            <EmptyState
-              title="Sin horarios"
-              description="Prueba otra fecha."
-            />
-          ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-              {slots.map((s) => (
-                <button
-                  key={s.starts_at}
-                  type="button"
-                  className={`min-h-11 rounded-lg border px-2 py-2.5 text-sm font-medium tabular-nums ${
-                    slot?.starts_at === s.starts_at
-                      ? 'border-brand-600 bg-brand-100 text-brand-800'
-                      : 'border-border bg-card hover:border-brand-400'
-                  }`}
-                  onClick={() => {
-                    setSlot(s)
-                    setStep('contact')
-                  }}
-                >
-                  {formatTimeInZone(s.starts_at, tz)}
-                </button>
-              ))}
-            </div>
-          )}
-        </Card>
+        <BookingSlotStep
+          date={date}
+          timezone={tz}
+          slots={slots}
+          busy={busy}
+          selectedStartsAt={slot?.starts_at}
+          onBack={() => setStep('professional')}
+          onDateChange={(d) => {
+            setDate(d)
+            setSlot(null)
+          }}
+          onSelect={(s) => {
+            setSlot(s)
+            setStep('contact')
+          }}
+        />
       ) : null}
 
       {step === 'contact' && slot && service && professional ? (
-        <Card>
-          <p className="mb-4 text-sm text-muted">
-            {service.name} · {professional.name} ·{' '}
-            {formatInTimeZone(slot.starts_at, tz)}
-          </p>
-          <form className="space-y-4" onSubmit={submit}>
-            <div>
-              <Label htmlFor="name">Nombre</Label>
-              <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input id="phone" required value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor="email">Correo (opcional)</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col-reverse gap-2 sm:flex-row">
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full sm:w-auto"
-                onClick={() => setStep('slot')}
-              >
-                Atrás
-              </Button>
-              <Button type="submit" disabled={busy} className="w-full flex-1">
-                {busy ? 'Reservando…' : 'Confirmar cita'}
-              </Button>
-            </div>
-          </form>
-        </Card>
+        <BookingContactStep
+          service={service}
+          professional={professional}
+          slot={slot}
+          timezone={tz}
+          name={name}
+          phone={phone}
+          email={email}
+          busy={busy}
+          onName={setName}
+          onPhone={setPhone}
+          onEmail={setEmail}
+          onBack={() => setStep('slot')}
+          onSubmit={(e) => void submit(e)}
+        />
       ) : null}
 
       {step === 'done' && appointmentId ? (
-        <Card className="text-center">
-          <h2 className="font-display text-2xl text-balance text-brand-800">¡Cita confirmada!</h2>
-          <p className="mt-2 text-sm text-pretty text-muted">
-            Guarda este código: <span className="font-mono text-ink">{appointmentId}</span>
-          </p>
-          {slot ? (
-            <p className="mt-3 font-medium tabular-nums">{formatInTimeZone(slot.starts_at, tz)}</p>
-          ) : null}
-          <div className="mt-6 flex flex-col items-center gap-3">
-            <Button
-              variant="secondary"
-              className="w-full sm:w-auto"
-              onClick={() => setRescheduleOpen(true)}
-            >
-              Solicitar reprogramación
-            </Button>
-            <TextLink to={`/${slug}/mis-citas`}>Ver mis citas</TextLink>
-            <TextLink to={`/cancel/${appointmentId}`}>¿Necesitas cancelar?</TextLink>
-          </div>
-        </Card>
+        <BookingSuccessStep
+          slug={slug}
+          appointmentId={appointmentId}
+          startsAt={slot?.starts_at}
+          timezone={tz}
+          onRequestReschedule={() => setRescheduleOpen(true)}
+        />
       ) : null}
 
       {appointmentId ? (

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getDashboard, getProfile } from '../catalog/businessApi'
+import { getDashboard, getProfile } from '../../shared/api/business'
 import type { AppointmentStatus, BusinessDashboard, DashboardAlert } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Card, PageHeader, PageLoading, TextLink } from '../../shared/ui/feedback'
+import { Alert, Button, Card, PageHeader, PageSkeleton, TextLink } from '../../shared/ui'
 import { SegmentedStatBar } from './SegmentedStatBar'
 import { WeekAgenda } from './WeekAgenda'
 
@@ -68,7 +66,7 @@ export function DashboardPage() {
     }
   }, [])
 
-  if (loading) return <PageLoading />
+  if (loading) return <PageSkeleton />
 
   return (
     <div>
@@ -76,20 +74,26 @@ export function DashboardPage() {
         title="Dashboard"
         subtitle="Resumen operativo de tu negocio"
         actions={
-          <Link to="/app/appointments" className="w-full sm:w-auto">
-            <Button className="w-full">Ir a agenda</Button>
+          <Link to="/app/appointments?new=1" className="w-full sm:w-auto">
+            <Button className="w-full">Nueva cita</Button>
           </Link>
         }
       />
-      {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
+      {error ? (
+        <div className="mb-3">
+          <Alert>{error}</Alert>
+        </div>
+      ) : null}
       {slug ? (
-        <Card className="mb-4">
-          <p className="text-sm text-muted">Enlace de reserva pública</p>
-          <p className="mt-1 font-mono text-brand-800">/{slug}</p>
-          <TextLink className="mt-2 inline-block" to={`/${slug}`}>
-            Abrir vitrina
-          </TextLink>
-        </Card>
+        <div className="mb-4 flex flex-col gap-1 rounded-xl border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Enlace público
+            </p>
+            <p className="mt-0.5 font-mono text-sm text-brand-800">/{slug}</p>
+          </div>
+          <TextLink to={`/${slug}`}>Abrir vitrina</TextLink>
+        </div>
       ) : null}
 
       {data?.alerts && data.alerts.length > 0 ? (

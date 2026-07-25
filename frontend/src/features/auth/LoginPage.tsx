@@ -1,25 +1,22 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, type SubmitEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { login } from './api'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { ApiError } from '../../shared/api/ApiError'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { AuthLayout } from '../../shared/ui/layouts'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Card, TextLink } from '../../shared/ui/feedback'
+import { AuthLayout, Alert, Button, FormFieldInput, Card, TextLink } from '../../shared/ui'
 
 export function LoginPage() {
   const { setSessionFromAuth } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: SubmitEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
@@ -31,12 +28,17 @@ export function LoginPage() {
         business_id: res.business_id,
         email,
       })
-      navigate(res.scope === 'platform' ? '/platform' : '/app', { replace: true })
+      const defaultTarget = res.scope === 'platform' ? '/platform' : '/app'
+      const safeFrom =
+        from &&
+        ((res.scope === 'platform' && from.startsWith('/platform')) ||
+          (res.scope === 'business' && from.startsWith('/app')))
+          ? from
+          : defaultTarget
+      navigate(safeFrom, { replace: true })
     } catch (err) {
       if (err instanceof ApiError && err.code === 'ACCESS_DISABLED') {
-        setError(
-          'Tu negocio fue dado de baja. Contacta soporte de la plataforma.',
-        )
+        setError('Tu negocio fue dado de baja. Contacta soporte de la plataforma.')
       } else {
         setError(getErrorMessage(err))
       }
@@ -47,32 +49,34 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
-      <Card>
-        <h1 className="mb-4 font-display text-2xl text-balance text-ink">Iniciar sesión</h1>
-        {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
+      <Card interactive>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-balance text-ink">
+          Iniciar sesión
+        </h1>
+        {error ? (
+          <div className="mb-3">
+            <Alert>{error}</Alert>
+          </div>
+        ) : null}
         <form className="space-y-4" onSubmit={onSubmit}>
-          <div>
-            <Label htmlFor="email">Correo</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-          </div>
+          <FormFieldInput
+            id="email"
+            label="Correo"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
+          <FormFieldInput
+            id="password"
+            label="Contraseña"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+          />
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Entrando…' : 'Entrar'}
           </Button>

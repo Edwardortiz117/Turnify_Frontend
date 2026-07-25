@@ -1,19 +1,17 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { blockClient, listClients, unblockClient, updateClient } from '../catalog/businessApi'
+import { useEffect, useState, type SubmitEvent } from 'react'
+import { toast } from 'sonner'
+import { blockClient, listClients, unblockClient, updateClient } from '../../shared/api/business'
 import type { Client } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Badge, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
+import { Alert, Button, ConfirmDialog, Input, Label, Badge, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui'
 
 export function ClientsPage() {
   const [q, setQ] = useState('')
   const [items, setItems] = useState<Client[]>([])
   const [editing, setEditing] = useState<Client | null>(null)
+  const [blockTarget, setBlockTarget] = useState<Client | null>(null)
+  const [blockLoading, setBlockLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   async function refresh(query?: string) {
@@ -33,7 +31,7 @@ export function ClientsPage() {
     void refresh()
   }, [])
 
-  async function onSave(e: FormEvent) {
+  async function onSave(e: SubmitEvent) {
     e.preventDefault()
     if (!editing) return
     try {
@@ -43,23 +41,34 @@ export function ClientsPage() {
         email: editing.email || null,
       })
       setEditing(null)
+      toast.success('Cliente actualizado')
       await refresh(q)
     } catch (err) {
       setError(getErrorMessage(err))
     }
   }
 
-  async function toggleBlock(c: Client) {
+  async function onConfirmBlock() {
+    if (!blockTarget) return
+    setBlockLoading(true)
     setError(null)
-    setMessage(null)
     try {
-      if (c.active) {
-        await blockClient(c.id)
-        setMessage(`${c.name} bloqueado: no podrá reservar.`)
-      } else {
-        await unblockClient(c.id)
-        setMessage(`${c.name} desbloqueado.`)
-      }
+      await blockClient(blockTarget.id)
+      toast.success(`${blockTarget.name} bloqueado`)
+      setBlockTarget(null)
+      await refresh(q)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setBlockLoading(false)
+    }
+  }
+
+  async function onUnblock(c: Client) {
+    setError(null)
+    try {
+      await unblockClient(c.id)
+      toast.success(`${c.name} desbloqueado`)
       await refresh(q)
     } catch (err) {
       setError(getErrorMessage(err))
@@ -69,8 +78,11 @@ export function ClientsPage() {
   return (
     <div>
       <PageHeader title="Clientes" subtitle="Búsqueda, edición y bloqueo" />
-      {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
-      {message ? <div className="mb-3"><Alert tone="success">{message}</Alert></div> : null}
+      {error ? (
+        <div className="mb-3">
+          <Alert>{error}</Alert>
+        </div>
+      ) : null}
       <form
         className="mb-4 flex flex-col gap-2 sm:flex-row"
         onSubmit={(e) => {
@@ -94,7 +106,10 @@ export function ClientsPage() {
       ) : (
         <div className="space-y-2">
           {items.map((c) => (
-            <Card key={c.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Card
+              key={c.id}
+              className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-semibold">{c.name}</p>
@@ -110,18 +125,31 @@ export function ClientsPage() {
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
                   variant="secondary"
+                  size="sm"
                   className="w-full sm:w-auto"
                   onClick={() => setEditing(c)}
                 >
                   Editar
                 </Button>
-                <Button
-                  variant={c.active ? 'danger' : 'secondary'}
-                  className="w-full sm:w-auto"
-                  onClick={() => void toggleBlock(c)}
-                >
-                  {c.active ? 'Bloquear' : 'Desbloquear'}
-                </Button>
+                {c.active ? (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={() => setBlockTarget(c)}
+                  >
+                    Bloquear
+                  </Button>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={() => void onUnblock(c)}
+                  >
+                    Desbloquear
+                  </Button>
+                )}
               </div>
             </Card>
           ))}
@@ -129,7 +157,7 @@ export function ClientsPage() {
       )}
 
       {editing ? (
-        <Card className="mt-4">
+        <Card className="mt-4" interactive>
           <h2 className="mb-3 font-semibold">Editar cliente</h2>
           <form className="grid gap-3 sm:grid-cols-2" onSubmit={onSave}>
             <div>
@@ -169,6 +197,17 @@ export function ClientsPage() {
           </form>
         </Card>
       ) : null}
+
+      <ConfirmDialog
+        open={!!blockTarget}
+        title={blockTarget ? `Bloquear a ${blockTarget.name}` : 'Bloquear'}
+        description="No podrá reservar por la vitrina pública hasta que lo desbloquees."
+        confirmLabel="Bloquear"
+        danger
+        loading={blockLoading}
+        onClose={() => setBlockTarget(null)}
+        onConfirm={() => void onConfirmBlock()}
+      />
     </div>
   )
 }

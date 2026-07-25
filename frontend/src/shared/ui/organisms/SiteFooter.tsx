@@ -9,7 +9,7 @@ export function SiteFooter({
 
   return (
     <footer
-      className={`mt-auto border-t border-border/80 bg-white/85 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm ${
+      className={`mt-auto border-t border-border bg-card pb-[max(0.75rem,env(safe-area-inset-bottom))] ${
         isCompact ? 'px-4 py-3.5 sm:px-6 lg:px-8' : 'px-4 py-7 sm:px-6 sm:py-9'
       }`}
     >

@@ -1,13 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type SubmitEvent } from 'react'
 import { getPlatformLogs } from './api'
 import type { PlatformLogItem } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Select } from '../../shared/ui/Select'
-import { Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui/feedback'
+import { Alert, Button, Input, Label, Select, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui'
 
 const formatLogTime = (time: unknown): string => {
   if (typeof time === 'number') {
@@ -57,7 +52,7 @@ export function PlatformLogViewerPage() {
     void refresh()
   }, [])
 
-  function onFilter(e: FormEvent) {
+  function onFilter(e: SubmitEvent) {
     e.preventDefault()
     void refresh()
   }

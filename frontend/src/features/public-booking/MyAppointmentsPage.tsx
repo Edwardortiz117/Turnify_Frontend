@@ -1,23 +1,16 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type SubmitEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   cancelPublicAppointment,
   getBusinessBySlug,
   lookupPublicAppointments,
-} from './api'
+} from '../../shared/api/public'
 import { PublicRescheduleRequestModal } from './PublicRescheduleRequestModal'
 import type { Appointment, PublicBusiness } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { ApiError } from '../../shared/api/ApiError'
 import { formatInTimeZone } from '../../shared/datetime'
-import { PublicLayout } from '../../shared/ui/layouts'
-import { BrandLogo } from '../../shared/ui/BrandLogo'
-import { Alert } from '../../shared/ui/Alert'
-import { AppointmentStatusBadge } from '../../shared/ui/AppointmentStatusBadge'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Card, EmptyState, PageLoading, TextLink } from '../../shared/ui/feedback'
+import { PublicLayout, BrandLogo, Alert, AppointmentStatusBadge, Button, Input, Label, Card, EmptyState, PageLoading, TextLink } from '../../shared/ui'
 
 const PHONE_KEY = (slug: string) => `turnify.myAppointments.phone.${slug}`
 
@@ -75,7 +68,7 @@ export const MyAppointmentsPage = () => {
     }
   }, [slug])
 
-  const handleLookup = async (e?: FormEvent) => {
+  const handleLookup = async (e?: SubmitEvent) => {
     e?.preventDefault()
     setError(null)
     setMessage(null)
@@ -149,7 +142,7 @@ export const MyAppointmentsPage = () => {
           <BrandLogo size="md" className="!mx-0" />
           <TextLink to={`/${slug}`}>Reservar cita</TextLink>
         </div>
-        <h1 className="mt-3 font-display text-3xl tracking-tight text-balance text-ink sm:text-4xl">
+        <h1 className="mt-3 font-bold tracking-tight text-3xl tracking-tight text-balance text-ink sm:text-4xl">
           Mis citas
         </h1>
         <p className="mt-2 max-w-xl text-sm text-pretty text-muted sm:text-base">

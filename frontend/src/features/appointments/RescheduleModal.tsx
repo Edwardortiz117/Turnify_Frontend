@@ -1,9 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
-import {
-  listAvailableSlots,
-  listProfessionalsOfferingService,
-  rescheduleAppointment,
-} from '../catalog/businessApi'
+import { rescheduleAppointment } from '../../shared/api/business'
+import { listProfessionalsForService, listSlots } from '../../shared/api/public'
 import type { Appointment, Professional, Slot } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import {
@@ -11,13 +8,7 @@ import {
   formatTimeInZone,
   toDateInputValue,
 } from '../../shared/datetime'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Modal } from '../../shared/ui/Modal'
-import { Select } from '../../shared/ui/Select'
-import { EmptyState, Spinner } from '../../shared/ui/feedback'
+import { Alert, Button, Input, Label, Modal, Select, EmptyState, Spinner } from '../../shared/ui'
 
 type RescheduleModalProps = {
   open: boolean
@@ -55,7 +46,7 @@ export const RescheduleModal = ({
     setProfessionalId(appointment.professional_id)
     setLoadingPros(true)
 
-    void listProfessionalsOfferingService(slug, appointment.service_id)
+    void listProfessionalsForService(slug, appointment.service_id)
       .then((list) => {
         if (cancelled) return
         const active = list.filter((p) => p.status === 'active')
@@ -83,7 +74,7 @@ export const RescheduleModal = ({
     setSelectedSlot(null)
     setError(null)
 
-    void listAvailableSlots(slug, professionalId, appointment.service_id, date)
+    void listSlots(slug, professionalId, appointment.service_id, date)
       .then((list) => {
         if (!cancelled) setSlots(list)
       })

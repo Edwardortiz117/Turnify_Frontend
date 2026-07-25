@@ -1,14 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from './api'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { AuthLayout } from '../../shared/ui/layouts'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Card } from '../../shared/ui/feedback'
+import { AuthLayout, Alert, Button, Card, FormFieldInput } from '../../shared/ui'
 
 function slugify(value: string) {
   return value
@@ -31,7 +26,7 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: SubmitEvent) {
     e.preventDefault()
     setError(null)
     const doc = documentId.trim()
@@ -63,71 +58,67 @@ export function RegisterPage() {
 
   return (
     <AuthLayout>
-      <Card>
-        <h1 className="mb-4 font-display text-2xl text-balance text-ink">Registrar negocio</h1>
-        {error ? <div className="mb-3"><Alert>{error}</Alert></div> : null}
+      <Card interactive>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-balance text-ink">
+          Registrar negocio
+        </h1>
+        {error ? (
+          <div className="mb-3">
+            <Alert>{error}</Alert>
+          </div>
+        ) : null}
         <form className="space-y-4" onSubmit={onSubmit}>
-          <div>
-            <Label htmlFor="businessName">Nombre del negocio</Label>
-            <Input
-              id="businessName"
-              required
-              value={businessName}
-              onChange={(e) => {
-                const v = e.target.value
-                setBusinessName(v)
-                if (!slugTouched) setSlug(slugify(v))
-              }}
-            />
-          </div>
-          <div>
-            <Label htmlFor="slug">Enlace público (slug)</Label>
-            <Input
-              id="slug"
-              required
-              value={slug}
-              onChange={(e) => {
-                setSlugTouched(true)
-                setSlug(slugify(e.target.value))
-              }}
-            />
-            <p className="mt-1 text-xs text-muted">Tus clientes reservarán en /{slug || 'tu-negocio'}</p>
-          </div>
-          <div>
-            <Label htmlFor="document">Documento del gerente</Label>
-            <Input
-              id="document"
-              required
-              autoComplete="off"
-              placeholder="Cédula o documento"
-              value={documentId}
-              onChange={(e) => setDocumentId(e.target.value.replace(/[\s.\-]/g, ''))}
-            />
-            <p className="mt-1 text-xs text-muted">
-              Identidad del gerente; la plataforma puede usarlo para validar el vínculo.
-            </p>
-          </div>
-          <div>
-            <Label htmlFor="email">Correo</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <FormFieldInput
+            id="businessName"
+            label="Nombre del negocio"
+            required
+            value={businessName}
+            onChange={(e) => {
+              const v = e.target.value
+              setBusinessName(v)
+              if (!slugTouched) setSlug(slugify(v))
+            }}
+          />
+          <FormFieldInput
+            id="slug"
+            label="Enlace público (slug)"
+            required
+            value={slug}
+            onChange={(e) => {
+              setSlugTouched(true)
+              setSlug(slugify(e.target.value))
+            }}
+            hint={`Tus clientes reservarán en /${slug || 'tu-negocio'}`}
+          />
+          <FormFieldInput
+            id="document"
+            label="Documento del gerente"
+            required
+            autoComplete="off"
+            placeholder="Cédula o documento"
+            value={documentId}
+            onChange={(e) => setDocumentId(e.target.value.replace(/[\s.\-]/g, ''))}
+            hint="Identidad del gerente; la plataforma puede usarlo para validar el vínculo."
+          />
+          <FormFieldInput
+            id="email"
+            label="Correo"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
+          <FormFieldInput
+            id="password"
+            label="Contraseña"
+            type="password"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+          />
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Creando…' : 'Crear cuenta'}
           </Button>

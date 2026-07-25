@@ -1,14 +1,9 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type SubmitEvent } from 'react'
 import { useParams } from 'react-router-dom'
-import { cancelPublicAppointment } from './api'
+import { cancelPublicAppointment } from '../../shared/api/public'
 import { PublicRescheduleRequestModal } from './PublicRescheduleRequestModal'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { PublicLayout } from '../../shared/ui/layouts'
-import { Alert } from '../../shared/ui/Alert'
-import { Button } from '../../shared/ui/Button'
-import { Input } from '../../shared/ui/Input'
-import { Label } from '../../shared/ui/Label'
-import { Card, TextLink } from '../../shared/ui/feedback'
+import { PublicLayout, Alert, Button, Input, Label, Card, TextLink } from '../../shared/ui'
 
 type LastAppointment = { id: string; slug: string; phone?: string }
 
@@ -36,7 +31,7 @@ export function CancelAppointmentPage() {
   const canRequestReschedule =
     !!remembered?.slug && remembered.id === appointmentId
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: SubmitEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -53,13 +48,13 @@ export function CancelAppointmentPage() {
   return (
     <PublicLayout>
       <Card>
-        <h1 className="font-display text-2xl text-balance text-ink">Cancelar cita</h1>
+        <h1 className="font-bold tracking-tight text-2xl text-balance text-ink">Cancelar cita</h1>
         <p className="mt-1 text-sm text-pretty text-muted">
           Confirma con el teléfono usado en la reserva.
         </p>
         {done ? (
           <div className="mt-4 space-y-3 text-center sm:text-left">
-            <h2 className="font-display text-2xl text-balance text-brand-800">
+            <h2 className="font-bold tracking-tight text-2xl text-balance text-brand-800">
               Cita cancelada
             </h2>
             <p className="text-sm text-pretty text-muted">

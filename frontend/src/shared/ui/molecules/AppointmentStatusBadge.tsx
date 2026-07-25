@@ -1,5 +1,5 @@
-import type { AppointmentStatus } from '../api/types'
-import { Badge } from './feedback'
+import type { AppointmentStatus } from '../../api/types'
+import { Badge } from '../atoms/Badge'
 
 const LABELS: Record<AppointmentStatus, string> = {
   confirmed: 'Confirmada',

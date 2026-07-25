@@ -1,9 +1,8 @@
-import { apiRequest } from '../../shared/api/client'
+import { apiRequest } from './client'
 import type {
   Appointment,
   AppointmentStatus,
   AvailabilityException,
-  AvailableSlots,
   Business,
   BusinessDashboard,
   BusinessStatus,
@@ -13,10 +12,9 @@ import type {
   Professional,
   ProfessionalStatus,
   Service,
-  Slot,
   WeeklySchedule,
   WeeklySlot,
-} from '../../shared/api/types'
+} from './types'
 
 export function getDashboard() {
   return apiRequest<BusinessDashboard>('/business/dashboard', { auth: true })
@@ -189,26 +187,6 @@ export function rescheduleAppointment(
     auth: true,
     body,
   })
-}
-
-/** Public slots endpoint (no auth) — used by manager reschedule UI. */
-export async function listAvailableSlots(
-  slug: string,
-  professionalId: string,
-  serviceId: string,
-  date: string,
-): Promise<Slot[]> {
-  const q = new URLSearchParams({ date })
-  const res = await apiRequest<AvailableSlots>(
-    `/public/businesses/${encodeURIComponent(slug)}/professionals/${professionalId}/services/${serviceId}/slots?${q}`,
-  )
-  return res.slots ?? []
-}
-
-export function listProfessionalsOfferingService(slug: string, serviceId: string) {
-  return apiRequest<Professional[]>(
-    `/public/businesses/${encodeURIComponent(slug)}/services/${serviceId}/professionals`,
-  )
 }
 
 export function completeAppointment(id: string) {
