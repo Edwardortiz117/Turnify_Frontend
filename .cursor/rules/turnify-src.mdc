@@ -1,0 +1,14 @@
+---
+description: Express/Sequelize conventions under src — English identifiers, thin controllers.
+globs: src/**/*.js
+alwaysApply: false
+---
+
+# `src/` conventions
+
+- **English only** for files, symbols, DB, JSON keys, error messages.
+- Controllers: map HTTP ↔ use case; use `asyncHandler`.
+- Use cases: orchestrate; open transactions when overlap rules require it.
+- Repos: always scope by `business_id` on business routes.
+- Logger only — no `console.log` for errors.
+- File names: kebab-case.

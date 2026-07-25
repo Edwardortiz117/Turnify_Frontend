@@ -1,0 +1,48 @@
+---
+description: Turnify backend global standards — English-only code, errors, SOLID, design.
+alwaysApply: true
+---
+
+# Turnify Backend
+
+## Golden rule — English only
+
+All **code** must be English:
+
+- File and folder names
+- Variables, functions, classes, modules
+- DB tables and columns
+- JSON request/response field names
+- Error `message` strings in API responses
+- Comments in code (prefer none; if needed, English)
+
+Spanish is allowed only in `docs/design/` (product design docs).
+
+## Skills
+
+When coding under `src/`, follow:
+
+- `.cursor/skills/turnify-rest-errors/SKILL.md`
+- `.cursor/skills/turnify-solid-clean-arch/SKILL.md`
+- `.cursor/skills/turnify-design-compliance/SKILL.md`
+
+## Stack
+
+Node.js + Express + PostgreSQL + Sequelize + JWT + Zod + pino.
+
+## Errors
+
+- No silent catches
+- Envelope `{ error: { code, message, details } }`
+- Typed domain/app errors; HTTP mapping only in error middleware
+
+## Roles (domain terms → English code)
+
+| Domain (docs) | Code |
+|---------------|------|
+| Admin plataforma | `scope: 'platform'` user |
+| Gerente | `manager` membership on a `business` |
+| Empleado | `Professional` entity (no login MVP) |
+| Cliente | `Client` entity |
+| Negocio | `Business` |
+| Cita | `Appointment` |

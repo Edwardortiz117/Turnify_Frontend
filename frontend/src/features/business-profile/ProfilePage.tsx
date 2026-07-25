@@ -1,11 +1,22 @@
-import { useEffect, useState, type SubmitEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { getProfile, updateProfile } from '../../shared/api/business'
 import type { Business } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { ChangePasswordCard } from '../auth/ChangePasswordCard'
-import { Alert, Button, ConfirmDialog, FormFieldInput, Badge, Card, EmptyState, PageHeader, PageLoading, TextLink } from '../../shared/ui'
+import {
+  Alert,
+  Button,
+  ConfirmDialog,
+  FormFieldInput,
+  Badge,
+  Card,
+  EmptyState,
+  PageHeader,
+  PageLoading,
+  TextLink,
+} from '../../shared/ui'
 
 export function ProfilePage() {
   const [profile, setProfile] = useState<Business | null>(null)
@@ -71,6 +82,20 @@ export function ProfilePage() {
     } finally {
       setToggling(false)
     }
+  }
+
+  const onNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setProfile((prev) => (prev ? { ...prev, name: e.target.value } : prev))
+  }
+
+  const onSlugChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setProfile((prev) => (prev ? { ...prev, slug: e.target.value } : prev))
+  }
+
+  const onCancellationHoursChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setProfile((prev) =>
+      prev ? { ...prev, cancellation_min_hours: Number(e.target.value) } : prev,
+    )
   }
 
   if (loading) return <PageLoading />
@@ -140,14 +165,14 @@ export function ProfilePage() {
             label="Nombre"
             className="sm:col-span-2"
             value={profile.name}
-            onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+            onChange={onNameChange}
             autoComplete="organization"
           />
           <FormFieldInput
             id="business-slug"
             label="Slug"
             value={profile.slug}
-            onChange={(e) => setProfile({ ...profile, slug: e.target.value })}
+            onChange={onSlugChange}
             autoComplete="off"
             spellCheck={false}
             hint={`URL pública: /${profile.slug || '…'}`}
@@ -158,9 +183,7 @@ export function ProfilePage() {
             type="number"
             min={0}
             value={profile.cancellation_min_hours ?? 0}
-            onChange={(e) =>
-              setProfile({ ...profile, cancellation_min_hours: Number(e.target.value) })
-            }
+            onChange={onCancellationHoursChange}
           />
           <FormFieldInput
             id="business-timezone"
