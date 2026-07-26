@@ -4,6 +4,9 @@ dist/
 dist-ssr/
 coverage/
 
+.docs/
+
+
 # Environment (keep examples)
 .env
 .env.local

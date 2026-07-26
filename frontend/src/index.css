@@ -142,6 +142,51 @@ img.media-fill {
     }
   }
 
+  @keyframes home-rise {
+    from {
+      opacity: 0;
+      transform: translateY(1.25rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes home-bg-drift {
+    from {
+      transform: scale(1.04) translate3d(0, 0, 0);
+      filter: blur(2px);
+    }
+    to {
+      transform: scale(1.08) translate3d(-1.2%, 0.6%, 0);
+      filter: blur(3px);
+    }
+  }
+
+  @keyframes home-glow {
+    0%,
+    100% {
+      opacity: 0.4;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.75;
+      transform: scale(1.08);
+    }
+  }
+
+  @keyframes home-card-settle {
+    from {
+      opacity: 0;
+      transform: translateY(1.5rem) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
   .surface-enter {
     animation: surface-enter var(--duration-ui) var(--ease-out) both;
   }
@@ -153,12 +198,59 @@ img.media-fill {
   .modal-panel-enter {
     animation: modal-panel-in var(--duration-modal) var(--ease-out) both;
   }
+
+  .home-rise {
+    animation: home-rise 700ms var(--ease-out) both;
+  }
+
+  .home-rise-delay-1 {
+    animation-delay: 80ms;
+  }
+
+  .home-rise-delay-2 {
+    animation-delay: 160ms;
+  }
+
+  .home-rise-delay-3 {
+    animation-delay: 240ms;
+  }
+
+  .home-rise-delay-4 {
+    animation-delay: 340ms;
+  }
+
+  .home-rise-delay-5 {
+    animation-delay: 420ms;
+  }
+
+  .home-bg-drift {
+    animation: home-bg-drift 32s ease-in-out alternate infinite;
+    will-change: transform, filter;
+  }
+
+  .home-glow {
+    animation: home-glow 8s ease-in-out infinite;
+  }
+
+  .home-card-settle {
+    animation: home-card-settle 800ms var(--ease-out) both;
+    animation-delay: 380ms;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .surface-enter,
   .modal-backdrop-enter,
-  .modal-panel-enter {
+  .modal-panel-enter,
+  .home-rise,
+  .home-bg-drift,
+  .home-glow,
+  .home-card-settle {
     animation: none;
+  }
+
+  .home-bg-drift {
+    filter: blur(2.5px);
+    transform: scale(1.04);
   }
 }

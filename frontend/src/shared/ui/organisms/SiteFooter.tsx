@@ -2,8 +2,10 @@ const year = new Date().getFullYear()
 
 export function SiteFooter({
   variant = 'default',
+  className = '',
 }: {
   variant?: 'default' | 'compact'
+  className?: string
 }) {
   const isCompact = variant === 'compact'
 
@@ -11,7 +13,7 @@ export function SiteFooter({
     <footer
       className={`mt-auto border-t border-border bg-card pb-[max(0.75rem,env(safe-area-inset-bottom))] ${
         isCompact ? 'px-4 py-3.5 sm:px-6 lg:px-8' : 'px-4 py-7 sm:px-6 sm:py-9'
-      }`}
+      } ${className}`}
     >
       <div
         className={`mx-auto flex w-full max-w-6xl flex-col items-center justify-center text-center ${
