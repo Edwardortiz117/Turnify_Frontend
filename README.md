@@ -32,45 +32,40 @@ npm run dev
 
 API base URL: `VITE_API_BASE_URL` (default `http://localhost:3000`).
 
-## Docker (frontend desacoplado)
+## Docker / CapRover
 
-### Desarrollo con hot reload (recomendado)
-
-Los cambios en `frontend/src` se reflejan solos; no hace falta reiniciar el contenedor.
+Un solo `Dockerfile` en la raíz (Nginx + SPA). Lo usan CapRover y `docker compose` local.
 
 ```bash
 cp .env.docker.example .env   # opcional
 docker compose up --build
 ```
 
-- UI: http://localhost:5173  
-- Proxy API: `/api/...` → `BACKEND_UPSTREAM`  
-- Código montado desde `./frontend` (HMR / Vite)
-
-Si ya tenías el contenedor Nginx antiguo, recrea el servicio:
-
-```bash
-docker compose down
-docker compose up --build
-```
-
-### Producción local (Nginx, build estático)
-
-```bash
-docker compose --profile prod up --build frontend-prod
-```
-
 - UI: http://localhost:8080  
+- Proxy API: `/api/...` → `BACKEND_SCHEME`://`BACKEND_UPSTREAM`
 
-| Variable | Default | Descripción |
-|----------|---------|-------------|
-| `FRONTEND_PORT` | `5173` | Puerto Vite (dev) |
-| `FRONTEND_PROD_PORT` | `8080` | Puerto Nginx (profile `prod`) |
-| `BACKEND_UPSTREAM` | `host.docker.internal:3000` | Host:puerto del backend (sin `http://`) |
-| `VITE_API_BASE_URL` | *(vacío)* | Vacío = same-origin vía proxy |
+| Variable | Default (compose) | Descripción |
+|----------|-------------------|-------------|
+| `FRONTEND_PORT` | `8080` | Puerto en el host |
+| `BACKEND_SCHEME` | `http` | `http` o `https` hacia el backend |
+| `BACKEND_UPSTREAM` | `host.docker.internal:3000` | Host:puerto (sin esquema) |
+| `VITE_API_BASE_URL` | *(vacío)* | Vacío = same-origin vía proxy Nginx |
 
-Backend en otro contenedor de la red `turnify-net`:
+Backend en la red `turnify-net`:
 
 ```bash
-BACKEND_UPSTREAM=backend:3000 docker compose up --build
+BACKEND_SCHEME=http BACKEND_UPSTREAM=backend:3000 docker compose up --build
 ```
+
+### CapRover
+
+1. Crear app (HTTP Port: **80**).
+2. App Configs:
+
+| Variable | Ejemplo |
+|----------|---------|
+| `BACKEND_SCHEME` | `https` (público) o `http` (red interna CapRover) |
+| `BACKEND_UPSTREAM` | `turnify-backend.ingsoftwarefesc.com` o `srv-captain--NOMBRE-BACKEND:3000` |
+
+3. Dejar `VITE_API_BASE_URL` vacío. Deploy usa `./Dockerfile` (`captain-definition`).
+4. Health: `GET /health` → `ok`.
