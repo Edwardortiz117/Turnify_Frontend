@@ -37,7 +37,7 @@ export function ForgotPasswordPage() {
         Te enviamos un enlace para restablecer el acceso.
       </p>
 
-      <Card className="home-card-settle space-y-4 border-white/80 bg-white/75 shadow-xl shadow-slate-900/12 backdrop-blur-md">
+      <Card className="home-card-settle space-y-4">
         {error ? <Alert>{error}</Alert> : null}
         {message ? <Alert tone="success">{message}</Alert> : null}
         {resetToken ? (

@@ -42,4 +42,12 @@ export { UserMenu } from './organisms/UserMenu'
 export { AuthLayout, PublicLayout, ShellFrame } from './templates/ShellLayouts'
 export { MarketingShell } from './templates/MarketingShell'
 
+export {
+  glassPanelClass,
+  glassHeaderClass,
+  glassNavClass,
+  glassPopoverClass,
+  glassCardAuthClass,
+} from './lib/glass'
+
 export type { ShellLink } from './templates/ShellLayouts'

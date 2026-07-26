@@ -5,9 +5,9 @@
 ## World
 
 **Mode:** Operate (paneles) + Persuade ligero (pública/auth).  
-**Thesis:** Software de citas premium, denso y calmado — acento teal Turnify sobre neutros slate, tipografía de trabajo, bordes hairline. Rechaza glassmorphism, cards decorativas y dashboards de “metric soup”.
+**Thesis:** Software de citas premium, denso y calmado — acento teal Turnify sobre neutros slate, tipografía de trabajo, superficies glass coherentes (blur + blanco translúcido) y bordes hairline. Evita cards decorativas y dashboards de “metric soup”.
 
-**Color strategy:** Restrained — neutros + un acento brand (teal). Light mode (oficinas/locales con luz diurna).
+**Color strategy:** Restrained — neutros + un acento brand (teal). Light mode (oficinas/locales con luz diurna) con fondo atmosférico suave para que el glass se lea.
 
 ## Palette
 
@@ -38,9 +38,10 @@
 
 ## Elevation
 
-- Preferir borde 1px sobre sombra.
-- `shadow-sm` solo en header sticky y modales.
-- Sin `backdrop-blur` en shells (superficie sólida).
+- Sistema glass compartido (`glass-panel`, `glass-header`, `glass-nav`, `glass-popover` en `shared/ui/lib/glass.ts`).
+- Cards, chrome (nav/header/footer), modales y menús usan el mismo blur (~18px) y blanco ~70–85%.
+- Inputs/selects permanecen sólidos (legibilidad de formularios).
+- Respetar `prefers-reduced-transparency`: superficies opacas.
 
 ## Motion
 
@@ -69,4 +70,4 @@ Cards solo cuando agrupan interacción o formularios. Empty/loading/error states
 
 ## Anti-patterns
 
-Glassmorphism, gradientes decorativos de fondo, pills excesivas, sombras multicapa, púrpura genérico AI, cream+terracotta, animar navegación o acciones de teclado.
+Glass inconsistente (blur/opacidad distintos por pantalla), pills excesivas, sombras multicapa, púrpura genérico AI, cream+terracotta, animar navegación o acciones de teclado.

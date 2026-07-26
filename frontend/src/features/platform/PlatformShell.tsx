@@ -6,7 +6,6 @@ export function PlatformShell() {
   const { session, logout } = useAuth()
   return (
     <ShellFrame
-      brand="Turnify"
       badge="Platform"
       email={session?.email}
       links={[

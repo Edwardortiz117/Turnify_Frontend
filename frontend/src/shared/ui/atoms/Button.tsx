@@ -9,7 +9,7 @@ const buttonVariants = cva(
       variant: {
         primary: 'bg-brand-700 text-white shadow-sm hover:bg-brand-800',
         secondary:
-          'border border-border bg-white text-ink shadow-sm hover:border-brand-200 hover:bg-brand-50/50',
+          'border border-white/60 bg-white/70 text-ink shadow-sm backdrop-blur-md hover:border-brand-200 hover:bg-white/90',
         danger: 'bg-danger text-white shadow-sm hover:bg-red-700',
         ghost: 'bg-transparent text-brand-800 hover:bg-brand-50',
       },

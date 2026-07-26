@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Button } from '../atoms/Button'
+import { cn } from '../../lib/cn'
+import { glassPanelClass } from '../lib/glass'
 
 export function EmptyState({
   title,
@@ -15,7 +17,12 @@ export function EmptyState({
   actionTo?: string
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-border bg-card px-5 py-8 text-center sm:px-8 sm:py-10">
+    <div
+      className={cn(
+        'rounded-xl border-dashed px-5 py-8 text-center sm:px-8 sm:py-10',
+        glassPanelClass,
+      )}
+    >
       <h3 className="text-lg font-bold tracking-tight text-balance text-ink sm:text-xl">{title}</h3>
       {description ? (
         <p className="mx-auto mt-2 max-w-md text-sm text-pretty text-muted">{description}</p>

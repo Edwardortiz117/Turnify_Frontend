@@ -53,10 +53,39 @@ body {
   font-family: var(--font-sans);
   color: var(--color-ink);
   background-color: var(--color-surface);
+  background-image:
+    radial-gradient(ellipse 900px 520px at 8% -5%, rgb(20 184 166 / 0.14), transparent 55%),
+    radial-gradient(ellipse 780px 480px at 96% 4%, rgb(15 118 110 / 0.1), transparent 50%),
+    radial-gradient(ellipse 640px 420px at 50% 110%, rgb(148 163 184 / 0.12), transparent 55%);
+  background-attachment: fixed;
   overflow-x: hidden;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Coherent glass system — panels, chrome, popovers */
+.glass-panel,
+.glass-header,
+.glass-nav,
+.glass-popover {
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  backdrop-filter: blur(18px) saturate(1.35);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel,
+  .glass-header,
+  .glass-nav,
+  .glass-popover {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background-color: #ffffff !important;
+  }
+
+  body {
+    background-image: none;
+  }
 }
 
 ::selection {
@@ -187,6 +216,27 @@ img.media-fill {
     }
   }
 
+  @keyframes home-logo-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.82);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes home-logo-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-0.4rem);
+    }
+  }
+
   .surface-enter {
     animation: surface-enter var(--duration-ui) var(--ease-out) both;
   }
@@ -236,6 +286,20 @@ img.media-fill {
     animation: home-card-settle 800ms var(--ease-out) both;
     animation-delay: 380ms;
   }
+
+  .home-logo-pop {
+    animation: home-logo-pop 650ms var(--ease-out) both;
+  }
+
+  .home-logo-float {
+    animation: home-logo-float 3.6s ease-in-out 700ms infinite;
+  }
+
+  .home-logo-pop.home-logo-float {
+    animation:
+      home-logo-pop 650ms var(--ease-out) both,
+      home-logo-float 3.6s ease-in-out 700ms infinite;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -245,7 +309,9 @@ img.media-fill {
   .home-rise,
   .home-bg-drift,
   .home-glow,
-  .home-card-settle {
+  .home-card-settle,
+  .home-logo-pop,
+  .home-logo-float {
     animation: none;
   }
 

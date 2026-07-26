@@ -7,6 +7,7 @@ import { SiteFooter } from '../organisms/SiteFooter'
 import { UserMenu } from '../organisms/UserMenu'
 import { cn } from '../../lib/cn'
 import { MarketingShell } from './MarketingShell'
+import { glassHeaderClass, glassNavClass } from '../lib/glass'
 
 function MenuIcon({ open }: { open: boolean }) {
   return (
@@ -38,23 +39,24 @@ export type ShellLink = {
 }
 
 export function ShellFrame({
-  brand,
   subtitle,
   badge,
   email,
   links,
   profileTo,
   headerActions,
+  headerTitle,
   primaryAction,
   onLogout,
 }: {
-  brand: string
   subtitle?: string
   badge?: string
   email?: string
   links: ShellLink[]
   profileTo?: string
   headerActions?: ReactNode
+  /** Centered title in the top bar (e.g. business name). */
+  headerTitle?: string
   primaryAction?: { to: string; label: string }
   onLogout: () => void
 }) {
@@ -126,17 +128,19 @@ export function ShellFrame({
       <aside
         id="app-nav"
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-[min(100%,16.5rem)] flex-col border-r border-border bg-card text-ink transition-transform duration-[var(--duration-ui)] ease-[var(--ease-drawer)] lg:static lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-[min(100%,16.5rem)] flex-col text-ink transition-transform duration-[var(--duration-ui)] ease-[var(--ease-drawer)] lg:static lg:translate-x-0',
+          glassNavClass,
           navOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         )}
       >
-        <div className="border-b border-border px-3 py-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <BrandLogo size="sm" className="!mx-0" />
-            <span className="truncate text-sm font-bold text-ink">{brand}</span>
+        <div className="border-b border-border px-3 py-4">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <BrandLogo size="lg" className="home-logo-pop home-logo-float mx-auto" />
             {badge ? <Badge tone="brand">{badge}</Badge> : null}
           </div>
-          {subtitle ? <p className="mt-1 text-xs text-muted">{subtitle}</p> : null}
+          {subtitle ? (
+            <p className="mt-2 text-center text-xs text-muted">{subtitle}</p>
+          ) : null}
         </div>
         <nav className="flex flex-1 flex-col gap-3 overflow-y-auto px-2 py-3" aria-label="Principal">
           {sections.map((group, i) => (
@@ -162,11 +166,15 @@ export function ShellFrame({
       </aside>
 
       <div className="flex min-h-dvh min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 lg:px-8">
-          <div className="flex min-w-0 items-center gap-2">
+        <header
+          className={cn(
+            'sticky top-0 z-30 grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 lg:px-8',
+            glassHeaderClass,
+          )}
+        >          <div className="flex min-w-0 items-center gap-2 justify-self-start">
             <button
               type="button"
-              className="inline-flex size-11 items-center justify-center rounded-lg border border-border bg-white text-ink transition-colors hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 lg:hidden"
+              className="inline-flex size-11 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-ink backdrop-blur-md transition-colors hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 lg:hidden"
               aria-expanded={navOpen}
               aria-controls="app-nav"
               aria-label={navOpen ? 'Cerrar menú' : 'Abrir menú'}
@@ -180,7 +188,20 @@ export function ShellFrame({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="min-w-0 max-w-[min(100%,18rem)] justify-self-center px-1 text-center sm:max-w-md">
+            {headerTitle ? (
+              <p
+                className="truncate text-sm font-semibold text-brand-800 transition-colors duration-200 sm:text-base"
+                title={headerTitle}
+              >
+                {headerTitle}
+              </p>
+            ) : (
+              <span className="sr-only">Turnify</span>
+            )}
+          </div>
+
+          <div className="flex shrink-0 items-center justify-end gap-2 justify-self-end">
             {primaryAction ? (
               <Link to={primaryAction.to} className="hidden sm:inline-flex">
                 <Button size="sm">{primaryAction.label}</Button>
@@ -206,8 +227,8 @@ export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <MarketingShell>
       <div className="w-full max-w-md text-left lg:mr-auto lg:max-w-md xl:max-w-lg">
-        <div className="home-rise home-rise-delay-1 mb-6">
-          <BrandLogo size="xl" className="mx-0" />
+        <div className="home-rise home-rise-delay-1 mb-6 flex justify-center">
+          <BrandLogo size="hero" className="home-logo-pop home-logo-float mx-auto" />
         </div>
         {children}
       </div>
@@ -225,7 +246,7 @@ export function PublicLayout({
   center?: boolean
 }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-surface">
+    <div className="flex min-h-dvh flex-col">
       <a href="#main-content" className="skip-link">
         Saltar al contenido
       </a>

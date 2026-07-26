@@ -56,7 +56,7 @@ export function LoginPage() {
         Accede al panel de tu negocio o de la plataforma.
       </p>
 
-      <Card className="home-card-settle space-y-4 border-white/80 bg-white/75 shadow-xl shadow-slate-900/12 backdrop-blur-md">
+      <Card className="home-card-settle space-y-4">
         {error ? <Alert>{error}</Alert> : null}
         <form className="space-y-3.5" onSubmit={onSubmit}>
           <FormFieldInput

@@ -53,7 +53,7 @@ export function UserMenu({
       <button
         ref={buttonRef}
         type="button"
-        className="inline-flex size-11 items-center justify-center rounded-xl border border-border bg-white text-ink shadow-sm transition duration-200 hover:border-brand-200 hover:bg-brand-50/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        className="inline-flex size-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 text-ink shadow-sm backdrop-blur-md transition duration-200 hover:border-brand-200 hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         aria-label="Menú de usuario"
         aria-expanded={open}
         aria-controls={menuId}
@@ -68,7 +68,7 @@ export function UserMenu({
           id={menuId}
           role="menu"
           aria-label="Cuenta"
-          className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl border border-border bg-card py-1.5 shadow-lg"
+          className="glass-popover absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl border border-white/60 bg-white/85 py-1.5 shadow-lg shadow-slate-900/10 backdrop-blur-xl backdrop-saturate-150"
         >
           {email ? (
             <p className="truncate border-b border-border px-3 py-2 text-xs text-muted" role="none">

@@ -78,7 +78,7 @@ export function Modal({ open, title, onClose, children, className = '' }: ModalP
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          'modal-panel-enter relative z-10 max-h-[min(90dvh,40rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-4 shadow-lg sm:p-5',
+          'modal-panel-enter relative z-10 max-h-[min(90dvh,40rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-white/55 bg-white/80 p-4 shadow-lg shadow-slate-900/10 backdrop-blur-xl backdrop-saturate-150 sm:p-5 glass-popover',
           className,
         )}
       >

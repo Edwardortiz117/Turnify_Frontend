@@ -80,7 +80,7 @@ export function DashboardPage() {
         </div>
       ) : null}
       {slug ? (
-        <div className="mb-4 flex flex-col gap-1 rounded-xl border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="mb-4 flex flex-col gap-1 rounded-xl border border-white/55 bg-white/70 px-4 py-3 shadow-sm shadow-slate-900/[0.04] backdrop-blur-xl backdrop-saturate-150 sm:flex-row sm:items-center sm:justify-between sm:px-5 glass-panel">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">
               Enlace público

@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { getProfile } from '../../shared/api/business'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { ShellFrame } from '../../shared/ui'
 import { BusinessNotificationBell } from '../notifications/NotificationBell'
@@ -16,13 +18,28 @@ export function AppShell() {
   const { session, logout } = useAuth()
   const { pathname } = useLocation()
   const onAgenda = pathname.startsWith('/app/appointments')
+  const [businessName, setBusinessName] = useState<string | undefined>()
+
+  useEffect(() => {
+    let cancelled = false
+    void getProfile()
+      .then((profile) => {
+        if (!cancelled && profile.name) setBusinessName(profile.name)
+      })
+      .catch(() => {
+        /* header title is optional */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <ShellFrame
-      brand="Turnify"
       email={session?.email}
       links={appLinks}
       profileTo="/app/profile"
+      headerTitle={businessName}
       primaryAction={
         onAgenda ? undefined : { to: '/app/appointments?new=1', label: 'Nueva cita' }
       }

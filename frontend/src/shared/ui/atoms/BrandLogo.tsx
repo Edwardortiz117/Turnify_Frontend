@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 
-type BrandLogoSize = 'sm' | 'md' | 'lg' | 'xl'
+type BrandLogoSize = 'sm' | 'md' | 'lg' | 'xl' | 'hero'
 
 /**
  * Fluid widths via clamp (min, preferred vw, max).
@@ -12,6 +12,7 @@ const frameClass: Record<BrandLogoSize, string> = {
   md: 'w-[clamp(4rem,8vw,5rem)]',
   lg: 'w-[clamp(3.9rem,15vw,6.6rem)]',
   xl: 'w-[clamp(5.75rem,20vw,9rem)]',
+  hero: 'w-[clamp(7rem,24vw,11rem)]',
 }
 
 /** Turnify mark (`/logoT.webp`) — adaptive / responsive within a size role. */

@@ -46,8 +46,8 @@ export function HomePage() {
   return (
     <MarketingShell>
       <div className="w-full max-w-xl text-left lg:mr-auto lg:max-w-lg xl:max-w-xl">
-        <div className="home-rise home-rise-delay-1">
-          <BrandLogo size="xl" className="mx-0" />
+        <div className="home-rise home-rise-delay-1 mb-1 flex justify-center">
+          <BrandLogo size="hero" className="home-logo-pop home-logo-float mx-auto" />
         </div>
 
         <h1 className="home-rise home-rise-delay-2 mt-5 font-bold tracking-tight text-4xl leading-[1.1] text-balance text-white sm:text-5xl lg:text-[3.35rem]">
@@ -74,7 +74,7 @@ export function HomePage() {
           </Link>
         </div>
 
-        <Card className="home-card-settle mt-10 w-full max-w-md space-y-4 border-white/80 bg-white/75 shadow-xl shadow-slate-900/12 backdrop-blur-md transition duration-300 hover:bg-white/85 hover:shadow-2xl hover:shadow-slate-900/15">
+        <Card className="home-card-settle mt-10 w-full max-w-md space-y-4 transition duration-300 hover:bg-white/80">
           <form className="space-y-3" onSubmit={goToBooking} aria-label="Ir a reserva pública">
             <div>
               <Label htmlFor="home-slug">Reservar en un negocio</Label>
