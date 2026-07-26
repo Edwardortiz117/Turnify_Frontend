@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { endOfDayIso, startOfDayIso, wallTimeToUtcIso } from './index'
+import { datetimeLocalToUtcIso, endOfDayIso, startOfDayIso, wallTimeToUtcIso } from './index'
 
 describe('datetime business timezone', () => {
   it('maps Bogotá start of day to 05:00Z', () => {
@@ -13,6 +13,12 @@ describe('datetime business timezone', () => {
   it('converts wall noon Bogotá to 17:00Z', () => {
     expect(wallTimeToUtcIso('2026-07-21', '12:00:00', 'America/Bogota')).toBe(
       '2026-07-21T17:00:00.000Z',
+    )
+  })
+
+  it('converts datetime-local Bogotá to UTC', () => {
+    expect(datetimeLocalToUtcIso('2026-07-21T09:30', 'America/Bogota')).toBe(
+      '2026-07-21T14:30:00.000Z',
     )
   })
 })

@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import {
   createException,
   deleteException,
+  getProfile,
   getWeeklySchedule,
   listExceptions,
   listProfessionals,
@@ -10,7 +11,7 @@ import {
 } from '../../shared/api/business'
 import type { AvailabilityException, Professional, WeeklySlot } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { endOfDayIso, startOfDayIso } from '../../shared/datetime'
+import { endOfDayIso, startOfDayIso, wallTimeToUtcIso } from '../../shared/datetime'
 import { Alert, ConfirmDialog, Label, Select, EmptyState, PageHeader, PageLoading } from '../../shared/ui'
 import { ExceptionsPanel } from './components/ExceptionsPanel'
 import { WeeklyScheduleEditor } from './components/WeeklyScheduleEditor'
@@ -38,15 +39,26 @@ export function AvailabilityPage() {
   const [exType, setExType] = useState<'block' | 'extra_open'>('block')
   const [exStart, setExStart] = useState('09:00')
   const [exEnd, setExEnd] = useState('13:00')
+  const [timezone, setTimezone] = useState('America/Bogota')
 
   useEffect(() => {
-    void listProfessionals()
-      .then((list) => {
+    let cancelled = false
+    void Promise.all([listProfessionals(), getProfile()])
+      .then(([list, profile]) => {
+        if (cancelled) return
         setProfessionals(list)
+        if (profile.timezone) setTimezone(profile.timezone)
         if (list[0]) setProfessionalId(list[0].id)
       })
-      .catch((err) => setError(getErrorMessage(err)))
-      .finally(() => setLoading(false))
+      .catch((err) => {
+        if (!cancelled) setError(getErrorMessage(err))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -91,12 +103,12 @@ export function AvailabilityPage() {
     try {
       const starts_at =
         exType === 'block'
-          ? startOfDayIso(exDate)
-          : new Date(`${exDate}T${exStart}:00`).toISOString()
+          ? startOfDayIso(exDate, timezone)
+          : wallTimeToUtcIso(exDate, exStart, timezone)
       const ends_at =
         exType === 'block'
-          ? endOfDayIso(exDate)
-          : new Date(`${exDate}T${exEnd}:00`).toISOString()
+          ? endOfDayIso(exDate, timezone)
+          : wallTimeToUtcIso(exDate, exEnd, timezone)
       await createException(professionalId, { starts_at, ends_at, type: exType })
       setExceptions(await listExceptions(professionalId))
       setExDate('')
@@ -130,12 +142,18 @@ export function AvailabilityPage() {
     return (
       <div>
         <PageHeader title="Disponibilidad" subtitle="Horario semanal y excepciones" />
-        <EmptyState
-          title="Primero crea un profesional"
-          description="La disponibilidad se define por profesional."
-          actionLabel="Ir a equipo"
-          actionTo="/app/professionals"
-        />
+        {error ? (
+          <div className="mb-3">
+            <Alert>{error}</Alert>
+          </div>
+        ) : (
+          <EmptyState
+            title="Primero crea un profesional"
+            description="La disponibilidad se define por profesional."
+            actionLabel="Ir a equipo"
+            actionTo="/app/professionals"
+          />
+        )}
       </div>
     )
   }

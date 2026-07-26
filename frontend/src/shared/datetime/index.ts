@@ -104,3 +104,16 @@ export function startOfDayIso(dateStr: string, timeZone = DEFAULT_TZ): string {
 export function endOfDayIso(dateStr: string, timeZone = DEFAULT_TZ): string {
   return wallTimeToUtcIso(dateStr, '23:59:59.999', timeZone)
 }
+
+/**
+ * Convert `<input type="datetime-local">` value (`YYYY-MM-DDTHH:mm` or with seconds)
+ * from business wall clock to UTC ISO.
+ */
+export function datetimeLocalToUtcIso(value: string, timeZone = DEFAULT_TZ): string {
+  const [dateStr, timePart] = value.split('T')
+  if (!dateStr || !timePart) {
+    throw new Error('Fecha/hora inválida')
+  }
+  const time = timePart.length === 5 ? `${timePart}:00` : timePart
+  return wallTimeToUtcIso(dateStr, time, timeZone)
+}

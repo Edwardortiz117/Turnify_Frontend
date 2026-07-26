@@ -65,6 +65,17 @@ export function ShellFrame({
     setNavOpen(false)
   }, [location.pathname])
 
+  // Close mobile drawer when viewport crosses to desktop (avoids stuck body overflow)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const onChange = () => {
+      if (mq.matches) setNavOpen(false)
+    }
+    onChange()
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
   useEffect(() => {
     if (!navOpen) return
     const prev = document.body.style.overflow

@@ -14,7 +14,7 @@ import {
 import { RescheduleModal } from './RescheduleModal'
 import type { Appointment, Professional, Service } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { endOfDayIso, formatInTimeZone, startOfDayIso, toDateInputValue } from '../../shared/datetime'
+import { endOfDayIso, formatInTimeZone, datetimeLocalToUtcIso, startOfDayIso, toDateInputValue } from '../../shared/datetime'
 import { Alert, AppointmentStatusBadge, Button, ConfirmDialog, Input, Label, Select, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui'
 
 export const AppointmentsPage = () => {
@@ -49,27 +49,34 @@ export const AppointmentsPage = () => {
     }
   }, [searchParams, setSearchParams])
 
-  const refresh = async () => {
+  const refresh = async (opts?: { ignore?: () => boolean }) => {
+    const stale = () => opts?.ignore?.() ?? false
     setLoading(true)
     setError(null)
     try {
       const res = await listAppointments({
-        from: startOfDayIso(from),
-        to: endOfDayIso(to),
+        from: startOfDayIso(from, timezone),
+        to: endOfDayIso(to, timezone),
         limit: 50,
       })
+      if (stale()) return
       setItems(res.items ?? [])
     } catch (err) {
+      if (stale()) return
       setError(getErrorMessage(err))
     } finally {
-      setLoading(false)
+      if (!stale()) setLoading(false)
     }
   }
 
   useEffect(() => {
-    void refresh()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh on date range only
-  }, [from, to])
+    let cancelled = false
+    void refresh({ ignore: () => cancelled })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh on date range / tz only
+  }, [from, to, timezone])
 
   useEffect(() => {
     void Promise.all([listServices(), listProfessionals(), getProfile()])
@@ -91,7 +98,7 @@ export const AppointmentsPage = () => {
       await createAppointment({
         professional_id: professionalId,
         service_id: serviceId,
-        starts_at: new Date(startsAt).toISOString(),
+        starts_at: datetimeLocalToUtcIso(startsAt, timezone),
         forced,
         client: { name: clientName, phone: clientPhone },
       })
