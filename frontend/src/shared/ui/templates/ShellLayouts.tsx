@@ -6,6 +6,7 @@ import { Button } from '../atoms/Button'
 import { SiteFooter } from '../organisms/SiteFooter'
 import { UserMenu } from '../organisms/UserMenu'
 import { cn } from '../../lib/cn'
+import { MarketingShell } from './MarketingShell'
 
 function MenuIcon({ open }: { open: boolean }) {
   return (
@@ -192,49 +193,14 @@ export function ShellFrame({
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="grid min-h-dvh bg-card lg:grid-cols-2">
-      <a href="#main-content" className="skip-link">
-        Saltar al contenido
-      </a>
-
-      {/* Form left — same side as Home CTAs, avoids layout jump */}
-      <div className="order-2 flex min-h-dvh flex-col bg-card lg:order-1">
-        <div
-          id="main-content"
-          className="surface-enter mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-8 sm:px-8 lg:mx-0 lg:max-w-lg lg:px-12 xl:px-16"
-        >
-          <div className="mb-6 flex flex-col items-center text-center lg:items-start lg:text-left">
-            <div className="flex items-center gap-3">
-              <BrandLogo size="md" className="!mx-0" />
-              <p className="text-xl font-extrabold tracking-tight text-ink">Turnify</p>
-            </div>
-            <p className="mt-3 text-sm text-pretty text-muted">
-              Gestión de citas para tu negocio
-            </p>
-          </div>
-          {children}
+    <MarketingShell>
+      <div className="w-full max-w-md text-left lg:mr-auto lg:max-w-md xl:max-w-lg">
+        <div className="home-rise home-rise-delay-1 mb-6">
+          <BrandLogo size="xl" className="mx-0" />
         </div>
-        <SiteFooter variant="compact" />
+        {children}
       </div>
-
-      <aside
-        className="relative order-1 min-h-[40vh] bg-brand-800 bg-cover bg-center lg:order-2 lg:min-h-dvh"
-        style={{ backgroundImage: 'url(/citas_agenda.webp)' }}
-        aria-hidden
-      >
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent lg:bg-gradient-to-l lg:from-transparent lg:via-ink/10 lg:to-ink/35"
-        />
-        <div className="relative z-10 flex h-full flex-col justify-end p-6 sm:p-8 lg:p-10">
-          <p className="max-w-sm text-lg font-bold leading-snug tracking-tight text-balance text-white lg:text-2xl">
-            Opera tu agenda y recibe reservas en un solo enlace.
-          </p>
-          <p className="mt-2 max-w-sm text-sm text-white/80 lg:mt-3">
-            Pensado para negocios de servicios en San José de Cúcuta.
-          </p>
-        </div>
-      </aside>
-    </div>
+    </MarketingShell>
   )
 }
 

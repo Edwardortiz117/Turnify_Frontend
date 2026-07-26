@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { ShellFrame } from '../../shared/ui'
 import { BusinessNotificationBell } from '../notifications/NotificationBell'
@@ -13,13 +14,18 @@ const appLinks = [
 
 export function AppShell() {
   const { session, logout } = useAuth()
+  const { pathname } = useLocation()
+  const onAgenda = pathname.startsWith('/app/appointments')
+
   return (
     <ShellFrame
       brand="Turnify"
       email={session?.email}
       links={appLinks}
       profileTo="/app/profile"
-      primaryAction={{ to: '/app/appointments?new=1', label: 'Nueva cita' }}
+      primaryAction={
+        onAgenda ? undefined : { to: '/app/appointments?new=1', label: 'Nueva cita' }
+      }
       headerActions={<BusinessNotificationBell />}
       onLogout={logout}
     />

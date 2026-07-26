@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { register } from './api'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { AuthLayout, Alert, Button, FormFieldInput } from '../../shared/ui'
+import { AuthLayout, Alert, Button, Card, FormFieldInput } from '../../shared/ui'
 
 function slugify(value: string) {
   return value
@@ -58,73 +58,76 @@ export function RegisterPage() {
 
   return (
     <AuthLayout>
-      <h1 className="mb-4 text-2xl font-bold tracking-tight text-balance text-ink">
+      <h1 className="home-rise home-rise-delay-2 mb-2 text-3xl font-bold tracking-tight text-balance text-white sm:text-4xl">
         Registrar negocio
       </h1>
-      {error ? (
-        <div className="mb-3">
-          <Alert>{error}</Alert>
-        </div>
-      ) : null}
-      <form className="space-y-3.5" onSubmit={onSubmit}>
-        <FormFieldInput
-          id="businessName"
-          label="Nombre del negocio"
-          required
-          value={businessName}
-          onChange={(e) => {
-            const v = e.target.value
-            setBusinessName(v)
-            if (!slugTouched) setSlug(slugify(v))
-          }}
-        />
-        <FormFieldInput
-          id="slug"
-          label="Enlace público (slug)"
-          required
-          value={slug}
-          onChange={(e) => {
-            setSlugTouched(true)
-            setSlug(slugify(e.target.value))
-          }}
-          hint={`Tus clientes reservarán en /${slug || 'tu-negocio'}`}
-        />
-        <FormFieldInput
-          id="document"
-          label="Documento del gerente"
-          required
-          autoComplete="off"
-          placeholder="Cédula o documento"
-          value={documentId}
-          onChange={(e) => setDocumentId(e.target.value.replace(/[\s.\-]/g, ''))}
-          hint="Identidad del gerente; la plataforma puede usarlo para validar el vínculo."
-        />
-        <FormFieldInput
-          id="email"
-          label="Correo"
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-        />
-        <FormFieldInput
-          id="password"
-          label="Contraseña"
-          type="password"
-          required
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="new-password"
-        />
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Creando…' : 'Crear cuenta'}
-        </Button>
-      </form>
-      <p className="mt-4 text-sm text-muted lg:text-left">
+      <p className="home-rise home-rise-delay-3 mb-6 text-sm text-pretty text-slate-300 sm:text-base">
+        Crea tu cuenta y publica el enlace de reservas.
+      </p>
+
+      <Card className="home-card-settle space-y-4 border-white/80 bg-white/75 shadow-xl shadow-slate-900/12 backdrop-blur-md">
+        {error ? <Alert>{error}</Alert> : null}
+        <form className="space-y-3.5" onSubmit={onSubmit}>
+          <FormFieldInput
+            id="businessName"
+            label="Nombre del negocio"
+            required
+            value={businessName}
+            onChange={(e) => {
+              const v = e.target.value
+              setBusinessName(v)
+              if (!slugTouched) setSlug(slugify(v))
+            }}
+          />
+          <FormFieldInput
+            id="slug"
+            label="Enlace público (slug)"
+            required
+            value={slug}
+            onChange={(e) => {
+              setSlugTouched(true)
+              setSlug(slugify(e.target.value))
+            }}
+            hint={`Tus clientes reservarán en /${slug || 'tu-negocio'}`}
+          />
+          <FormFieldInput
+            id="document"
+            label="Documento del gerente"
+            required
+            autoComplete="off"
+            placeholder="Cédula o documento"
+            value={documentId}
+            onChange={(e) => setDocumentId(e.target.value.replace(/[\s.\-]/g, ''))}
+            hint="Identidad del gerente; la plataforma puede usarlo para validar el vínculo."
+          />
+          <FormFieldInput
+            id="email"
+            label="Correo"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
+          <FormFieldInput
+            id="password"
+            label="Contraseña"
+            type="password"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Creando…' : 'Crear cuenta'}
+          </Button>
+        </form>
+      </Card>
+
+      <p className="home-rise home-rise-delay-5 mt-5 text-sm text-slate-300">
         ¿Ya tienes cuenta?{' '}
-        <Link className="font-semibold text-brand-700 hover:text-brand-800" to="/login">
+        <Link className="font-semibold text-brand-300 hover:text-brand-200" to="/login">
           Iniciar sesión
         </Link>
       </p>

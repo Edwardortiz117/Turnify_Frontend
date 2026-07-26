@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { getDashboard, getProfile } from '../../shared/api/business'
 import type { AppointmentStatus, BusinessDashboard, DashboardAlert } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { Alert, Button, Card, PageHeader, PageSkeleton, TextLink } from '../../shared/ui'
+import { Alert, Card, PageHeader, PageSkeleton, TextLink } from '../../shared/ui'
 import { SegmentedStatBar } from './SegmentedStatBar'
 import { WeekAgenda } from './WeekAgenda'
 
@@ -73,11 +73,6 @@ export function DashboardPage() {
       <PageHeader
         title="Dashboard"
         subtitle="Resumen operativo de tu negocio"
-        actions={
-          <Link to="/app/appointments?new=1" className="w-full sm:w-auto">
-            <Button className="w-full">Nueva cita</Button>
-          </Link>
-        }
       />
       {error ? (
         <div className="mb-3">

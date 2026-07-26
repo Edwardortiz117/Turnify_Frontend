@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { resetPassword } from './api'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { AuthLayout, Alert, Button, FormFieldInput } from '../../shared/ui'
+import { AuthLayout, Alert, Button, Card, FormFieldInput } from '../../shared/ui'
 
 export function ResetPasswordPage() {
   const [params] = useSearchParams()
@@ -30,40 +30,43 @@ export function ResetPasswordPage() {
 
   return (
     <AuthLayout>
-      <h1 className="mb-4 text-2xl font-bold tracking-tight text-balance text-ink">
+      <h1 className="home-rise home-rise-delay-2 mb-2 text-3xl font-bold tracking-tight text-balance text-white sm:text-4xl">
         Nueva contraseña
       </h1>
-      {error ? (
-        <div className="mb-3">
-          <Alert>{error}</Alert>
-        </div>
-      ) : null}
-      <form className="space-y-3.5" onSubmit={onSubmit}>
-        <FormFieldInput
-          id="token"
-          label="Token de restablecimiento"
-          required
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          autoComplete="off"
-        />
-        <FormFieldInput
-          id="password"
-          label="Nueva contraseña"
-          type="password"
-          required
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="new-password"
-          hint="Mínimo 8 caracteres."
-        />
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Guardando…' : 'Restablecer'}
-        </Button>
-      </form>
-      <p className="mt-4 text-sm text-muted lg:text-left">
-        <Link className="font-semibold text-brand-700 hover:text-brand-800" to="/login">
+      <p className="home-rise home-rise-delay-3 mb-6 text-sm text-pretty text-slate-300 sm:text-base">
+        Elige una contraseña nueva para tu cuenta.
+      </p>
+
+      <Card className="home-card-settle space-y-4 border-white/80 bg-white/75 shadow-xl shadow-slate-900/12 backdrop-blur-md">
+        {error ? <Alert>{error}</Alert> : null}
+        <form className="space-y-3.5" onSubmit={onSubmit}>
+          <FormFieldInput
+            id="token"
+            label="Token de restablecimiento"
+            required
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            autoComplete="off"
+          />
+          <FormFieldInput
+            id="password"
+            label="Nueva contraseña"
+            type="password"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+            hint="Mínimo 8 caracteres."
+          />
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Guardando…' : 'Restablecer'}
+          </Button>
+        </form>
+      </Card>
+
+      <p className="home-rise home-rise-delay-5 mt-5 text-sm text-slate-300">
+        <Link className="font-semibold text-brand-300 hover:text-brand-200" to="/login">
           Volver al login
         </Link>
       </p>

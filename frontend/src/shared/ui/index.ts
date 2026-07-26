@@ -40,4 +40,6 @@ export { UserMenu } from './organisms/UserMenu'
 
 // Templates
 export { AuthLayout, PublicLayout, ShellFrame } from './templates/ShellLayouts'
+export { MarketingShell } from './templates/MarketingShell'
+
 export type { ShellLink } from './templates/ShellLayouts'

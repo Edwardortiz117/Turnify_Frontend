@@ -4,7 +4,7 @@ import { login } from './api'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { ApiError } from '../../shared/api/ApiError'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { AuthLayout, Alert, Button, FormFieldInput, TextLink } from '../../shared/ui'
+import { AuthLayout, Alert, Button, Card, FormFieldInput, TextLink } from '../../shared/ui'
 
 export function LoginPage() {
   const { setSessionFromAuth } = useAuth()
@@ -49,43 +49,50 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
-      <h1 className="mb-4 text-2xl font-bold tracking-tight text-balance text-ink">
+      <h1 className="home-rise home-rise-delay-2 mb-2 text-3xl font-bold tracking-tight text-balance text-white sm:text-4xl">
         Iniciar sesión
       </h1>
-      {error ? (
-        <div className="mb-3">
-          <Alert>{error}</Alert>
-        </div>
-      ) : null}
-      <form className="space-y-3.5" onSubmit={onSubmit}>
-        <FormFieldInput
-          id="email"
-          label="Correo"
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-        />
-        <FormFieldInput
-          id="password"
-          label="Contraseña"
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="current-password"
-        />
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Entrando…' : 'Entrar'}
-        </Button>
-      </form>
-      <p className="mt-3 text-sm lg:text-left">
-        <TextLink to="/forgot-password">¿Olvidaste tu contraseña?</TextLink>
+      <p className="home-rise home-rise-delay-3 mb-6 text-sm text-pretty text-slate-300 sm:text-base">
+        Accede al panel de tu negocio o de la plataforma.
       </p>
-      <p className="mt-4 text-sm text-muted lg:text-left">
+
+      <Card className="home-card-settle space-y-4 border-white/80 bg-white/75 shadow-xl shadow-slate-900/12 backdrop-blur-md">
+        {error ? <Alert>{error}</Alert> : null}
+        <form className="space-y-3.5" onSubmit={onSubmit}>
+          <FormFieldInput
+            id="email"
+            label="Correo"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
+          <FormFieldInput
+            id="password"
+            label="Contraseña"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+          />
+          <Button
+            type="submit"
+            className="w-full shadow-md shadow-brand-700/20 transition duration-300 hover:-translate-y-0.5 hover:shadow-lg motion-reduce:hover:translate-y-0"
+            disabled={loading}
+          >
+            {loading ? 'Entrando…' : 'Entrar'}
+          </Button>
+        </form>
+        <p className="text-sm">
+          <TextLink to="/forgot-password">¿Olvidaste tu contraseña?</TextLink>
+        </p>
+      </Card>
+
+      <p className="home-rise home-rise-delay-5 mt-5 text-sm text-slate-300">
         ¿Nuevo negocio?{' '}
-        <Link className="font-semibold text-brand-700 hover:text-brand-800" to="/register">
+        <Link className="font-semibold text-brand-300 hover:text-brand-200" to="/register">
           Crear cuenta
         </Link>
       </p>
