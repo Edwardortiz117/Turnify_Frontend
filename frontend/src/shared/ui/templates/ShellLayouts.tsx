@@ -118,15 +118,15 @@ export function ShellFrame({
           navOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         )}
       >
-        <div className="border-b border-border px-4 py-4">
+        <div className="border-b border-border px-3 py-3">
           <div className="flex flex-wrap items-center gap-2">
-            <BrandLogo size="md" />
-            <span className="sr-only">{brand}</span>
+            <BrandLogo size="sm" className="!mx-0" />
+            <span className="truncate text-sm font-bold text-ink">{brand}</span>
             {badge ? <Badge tone="brand">{badge}</Badge> : null}
           </div>
           {subtitle ? <p className="mt-1 text-xs text-muted">{subtitle}</p> : null}
         </div>
-        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-4" aria-label="Principal">
+        <nav className="flex flex-1 flex-col gap-3 overflow-y-auto px-2 py-3" aria-label="Principal">
           {sections.map((group, i) => (
             <div key={group.name ?? `g-${i}`} className="flex flex-col gap-0.5">
               {group.name ? (
@@ -179,8 +179,8 @@ export function ShellFrame({
           </div>
         </header>
 
-        <main id="main-content" className="min-w-0 flex-1 px-4 py-5 pb-6 sm:px-6 sm:py-7 lg:px-8">
-          <div className="surface-enter mx-auto w-full max-w-6xl">
+        <main id="main-content" className="min-w-0 flex-1 px-4 py-4 pb-5 sm:px-6 sm:py-5 lg:px-8">
+          <div className="surface-enter mx-auto w-full max-w-7xl">
             <Outlet />
           </div>
         </main>
@@ -192,21 +192,48 @@ export function ShellFrame({
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-surface">
+    <div className="grid min-h-dvh bg-card lg:grid-cols-2">
       <a href="#main-content" className="skip-link">
         Saltar al contenido
       </a>
-      <div
-        id="main-content"
-        className="surface-enter mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 sm:px-6"
-      >
-        <div className="mb-8 flex flex-col items-center text-center">
-          <BrandLogo size="lg" />
-          <p className="mt-3 text-sm text-pretty text-muted">Gestión de citas para tu negocio</p>
+
+      {/* Form left — same side as Home CTAs, avoids layout jump */}
+      <div className="order-2 flex min-h-dvh flex-col bg-card lg:order-1">
+        <div
+          id="main-content"
+          className="surface-enter mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-8 sm:px-8 lg:mx-0 lg:max-w-lg lg:px-12 xl:px-16"
+        >
+          <div className="mb-6 flex flex-col items-center text-center lg:items-start lg:text-left">
+            <div className="flex items-center gap-3">
+              <BrandLogo size="md" className="!mx-0" />
+              <p className="text-xl font-extrabold tracking-tight text-ink">Turnify</p>
+            </div>
+            <p className="mt-3 text-sm text-pretty text-muted">
+              Gestión de citas para tu negocio
+            </p>
+          </div>
+          {children}
         </div>
-        {children}
+        <SiteFooter variant="compact" />
       </div>
-      <SiteFooter />
+
+      <aside
+        className="relative order-1 min-h-[40vh] bg-brand-800 bg-cover bg-center lg:order-2 lg:min-h-dvh"
+        style={{ backgroundImage: 'url(/citas_agenda.webp)' }}
+        aria-hidden
+      >
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent lg:bg-gradient-to-l lg:from-transparent lg:via-ink/10 lg:to-ink/35"
+        />
+        <div className="relative z-10 flex h-full flex-col justify-end p-6 sm:p-8 lg:p-10">
+          <p className="max-w-sm text-lg font-bold leading-snug tracking-tight text-balance text-white lg:text-2xl">
+            Opera tu agenda y recibe reservas en un solo enlace.
+          </p>
+          <p className="mt-2 max-w-sm text-sm text-white/80 lg:mt-3">
+            Pensado para negocios de servicios en San José de Cúcuta.
+          </p>
+        </div>
+      </aside>
     </div>
   )
 }
@@ -228,14 +255,14 @@ export function PublicLayout({
       <div
         id="main-content"
         className={cn(
-          'surface-enter mx-auto w-full flex-1 px-4 sm:px-6',
-          wide ? 'max-w-3xl' : 'max-w-2xl',
-          center ? 'flex flex-col justify-center py-12 sm:py-16' : 'py-6 sm:py-10 lg:py-12',
+          'surface-enter mx-auto w-full flex-1 px-4 sm:px-6 lg:px-8',
+          wide ? 'max-w-5xl' : 'max-w-3xl',
+          center ? 'flex flex-col justify-center py-8 sm:py-10' : 'py-5 sm:py-7 lg:py-8',
         )}
       >
         {children}
       </div>
-      <SiteFooter />
+      <SiteFooter variant="compact" />
     </div>
   )
 }

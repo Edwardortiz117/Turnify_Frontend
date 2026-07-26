@@ -6,7 +6,7 @@ export const PlatformAccountPage = () => {
   const { session } = useAuth()
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-3xl">
       <PageHeader
         title="Ajustes"
         subtitle="Cuenta del administrador de plataforma"

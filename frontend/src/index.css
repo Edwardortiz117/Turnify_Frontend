@@ -85,6 +85,14 @@ video {
   height: auto;
 }
 
+/** Full-bleed media planes (heroes / auth panels) — overrides the reset above. */
+img.media-fill {
+  max-width: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .skip-link {
   position: absolute;
   left: 1rem;

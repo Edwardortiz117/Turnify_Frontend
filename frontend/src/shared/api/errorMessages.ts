@@ -17,8 +17,27 @@ export const ERROR_MESSAGES_ES: Record<string, string> = {
   CANCELLATION_TOO_LATE: 'Ya no es posible cancelar esta cita.',
   CLIENT_APPOINTMENT_LIMIT: 'Alcanzaste el límite de citas permitidas.',
   INTERNAL_ERROR: 'Error del servidor. Intenta más tarde.',
+  PROXY_ERROR: 'No pudimos conectar con el servicio. Intenta de nuevo en unos momentos.',
+  NETWORK_ERROR: 'No hay conexión con el servicio. Revisa tu red e intenta de nuevo.',
+}
+
+/** Mensajes o códigos que no deben mostrarse al usuario (infra / proxy / URLs). */
+export function looksLikeInfrastructureMessage(message: string): boolean {
+  return /https?:\/\/|host\.docker\.internal|localhost:\d+|127\.0\.0\.1|0\.0\.0\.0|Cannot reach|ECONNREFUSED|ENOTFOUND|ETIMEDOUT|EAI_AGAIN|Failed to fetch|NetworkError|proxy error|ERR_CONNECTION|getaddrinfo/i.test(
+    message,
+  )
+}
+
+export function isInfrastructureErrorCode(code: string): boolean {
+  return code === 'PROXY_ERROR' || code === 'NETWORK_ERROR' || code === 'INTERNAL_ERROR'
 }
 
 export function messageForErrorCode(code: string, fallback?: string): string {
-  return ERROR_MESSAGES_ES[code] ?? fallback ?? 'Ocurrió un error inesperado.'
+  const mapped = ERROR_MESSAGES_ES[code]
+  if (mapped) return mapped
+  if (fallback && looksLikeInfrastructureMessage(fallback)) {
+    return ERROR_MESSAGES_ES.NETWORK_ERROR
+  }
+  if (fallback?.trim()) return fallback.trim()
+  return 'Ocurrió un error inesperado.'
 }

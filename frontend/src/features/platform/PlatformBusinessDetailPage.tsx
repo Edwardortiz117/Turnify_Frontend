@@ -148,7 +148,14 @@ export function PlatformBusinessDetailPage() {
   }
 
   if (loading) return <PageLoading />
-  if (!business) return <EmptyState title="Negocio no encontrado" description={error ?? undefined} />
+  if (!business) {
+    return (
+      <EmptyState
+        title="Negocio no encontrado"
+        description="No existe un negocio con ese identificador, o no tienes acceso."
+      />
+    )
+  }
 
   return (
     <div>

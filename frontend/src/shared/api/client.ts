@@ -2,6 +2,7 @@ import { API_V1 } from '../config/env'
 import { ApiError } from './ApiError'
 import type { ApiErrorBody } from './types'
 import { clearSession, getAccessToken } from '../auth/session'
+import { messageForErrorCode } from './errorMessages'
 
 export interface RequestOptions {
   method?: string
@@ -27,12 +28,22 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     if (token) reqHeaders.Authorization = `Bearer ${token}`
   }
 
-  const res = await fetch(`${API_V1}${path}`, {
-    method,
-    headers: reqHeaders,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-    signal,
-  })
+  let res: Response
+  try {
+    res = await fetch(`${API_V1}${path}`, {
+      method,
+      headers: reqHeaders,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
+    })
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') throw err
+    throw new ApiError(
+      'NETWORK_ERROR',
+      messageForErrorCode('NETWORK_ERROR'),
+      0,
+    )
+  }
 
   if (res.status === 204) {
     return undefined as T

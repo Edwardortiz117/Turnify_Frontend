@@ -102,7 +102,7 @@ export function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="mx-auto w-full max-w-2xl">
+      <div className="mx-auto w-full max-w-3xl">
         <PageHeader title="Ajustes" subtitle="Negocio, vitrina y contraseña" />
         {error ? (
           <div className="mb-3">
@@ -122,7 +122,7 @@ export function ProfilePage() {
   const isOpen = profile.status !== 'suspended'
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-3xl">
       <PageHeader title="Ajustes" subtitle="Negocio, vitrina y contraseña" />
       {error ? (
         <div className="mb-3">

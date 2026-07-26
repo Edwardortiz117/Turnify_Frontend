@@ -31,7 +31,9 @@
 
 ## Spacing & radius
 
-- Base 4px. Ritmo: `gap-3` / `gap-4` / `gap-6`.
+- Base 4px. Ritmo: `gap-2` / `gap-3` / `gap-4` / `gap-6`.
+- **Densidad Operate:** paneles con `max-w-7xl`, padding de página `py-4`–`py-5`, headers compactos.
+- **Persuade (landing):** composición full-bleed (split copy + imagen), sin columna centrada estrecha.
 - Radius: `sm` 6px, `md` 8px (`rounded-lg`), `lg` 12px (`rounded-xl`). Evitar `rounded-2xl` salvo media/modales.
 
 ## Elevation

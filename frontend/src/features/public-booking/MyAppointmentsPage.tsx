@@ -9,6 +9,7 @@ import { PublicRescheduleRequestModal } from './PublicRescheduleRequestModal'
 import type { Appointment, PublicBusiness } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { ApiError } from '../../shared/api/ApiError'
+import { isInfrastructureErrorCode } from '../../shared/api/errorMessages'
 import { formatInTimeZone } from '../../shared/datetime'
 import { PublicLayout, BrandLogo, Alert, AppointmentStatusBadge, Button, Input, Label, Card, EmptyState, PageLoading, TextLink } from '../../shared/ui'
 
@@ -54,6 +55,10 @@ export const MyAppointmentsPage = () => {
         if (!cancelled) {
           if (err instanceof ApiError && err.code === 'BUSINESS_SUSPENDED') {
             setError('BUSINESS_SUSPENDED')
+          } else if (err instanceof ApiError && isInfrastructureErrorCode(err.code)) {
+            setError(err.code)
+          } else if (err instanceof ApiError && (err.code === 'NOT_FOUND' || err.status === 404)) {
+            setError('NOT_FOUND')
           } else {
             setError(getErrorMessage(err))
           }
@@ -128,24 +133,32 @@ export const MyAppointmentsPage = () => {
   }
 
   if (!business) {
+    const unavailable = error === 'NETWORK_ERROR' || error === 'PROXY_ERROR' || error === 'INTERNAL_ERROR'
     return (
       <PublicLayout>
-        <EmptyState title="Negocio no encontrado" description={error ?? undefined} />
+        <EmptyState
+          title={unavailable ? 'No pudimos cargar el negocio' : 'Negocio no encontrado'}
+          description={
+            unavailable
+              ? 'Intenta de nuevo en unos momentos. Si el problema continúa, vuelve más tarde.'
+              : 'No hay un negocio con ese enlace. Revisa el slug o pide el enlace correcto al negocio.'
+          }
+        />
       </PublicLayout>
     )
   }
 
   return (
-    <PublicLayout>
-      <header className="mb-7 sm:mb-9">
+    <PublicLayout wide>
+      <header className="mb-5 sm:mb-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <BrandLogo size="md" className="!mx-0" />
           <TextLink to={`/${slug}`}>Reservar cita</TextLink>
         </div>
-        <h1 className="mt-3 font-bold tracking-tight text-3xl tracking-tight text-balance text-ink sm:text-4xl">
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-balance text-ink sm:text-3xl">
           Mis citas
         </h1>
-        <p className="mt-2 max-w-xl text-sm text-pretty text-muted sm:text-base">
+        <p className="mt-1.5 max-w-xl text-sm text-pretty text-muted">
           Consulta y gestiona tus reservas en {business.name} con el teléfono de la reserva.
         </p>
       </header>

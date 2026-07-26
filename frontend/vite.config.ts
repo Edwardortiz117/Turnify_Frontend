@@ -65,7 +65,7 @@ export default defineConfig(({ mode }) => {
                   JSON.stringify({
                     error: {
                       code: 'PROXY_ERROR',
-                      message: `Cannot reach backend at ${proxyTarget}`,
+                      message: 'Service temporarily unavailable',
                     },
                   }),
                 )

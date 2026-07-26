@@ -14,7 +14,7 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-xl border border-border bg-card p-4 sm:p-5',
+        'rounded-xl border border-border bg-card p-3.5 sm:p-4',
         interactive && 'shadow-sm transition-shadow duration-[var(--duration-ui)] hover:shadow-md',
         className,
       )}

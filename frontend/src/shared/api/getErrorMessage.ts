@@ -1,4 +1,8 @@
 import { ApiError } from '../api/ApiError'
+import {
+  looksLikeInfrastructureMessage,
+  messageForErrorCode,
+} from './errorMessages'
 
 export function getErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
@@ -6,10 +10,19 @@ export function getErrorMessage(err: unknown): string {
       const detailText = formatValidationDetails(err.details)
       if (detailText) return detailText
     }
-    return err.message
+    return messageForErrorCode(err.code, err.message)
   }
-  if (err instanceof Error) return err.message
+  if (err instanceof Error) {
+    if (isBrowserNetworkFailure(err) || looksLikeInfrastructureMessage(err.message)) {
+      return messageForErrorCode('NETWORK_ERROR')
+    }
+    return err.message.trim() || 'Ocurrió un error inesperado.'
+  }
   return 'Ocurrió un error inesperado.'
+}
+
+function isBrowserNetworkFailure(err: Error): boolean {
+  return /failed to fetch|load failed|networkerror|network request failed/i.test(err.message)
 }
 
 function formatValidationDetails(details: Record<string, unknown>): string | null {
