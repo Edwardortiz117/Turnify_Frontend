@@ -30,6 +30,8 @@ export const AppointmentsPage = () => {
   const [services, setServices] = useState<Service[]>([])
   const [professionals, setProfessionals] = useState<Professional[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [catalogError, setCatalogError] = useState<string | null>(null)
+  const [catalogLoading, setCatalogLoading] = useState(true)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null)
@@ -152,17 +154,38 @@ export const AppointmentsPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh on date range / tz only
   }, [from, to, timezone])
 
+  const loadCatalog = async (opts?: { ignore?: () => boolean }) => {
+    const stale = () => opts?.ignore?.() ?? false
+    setCatalogLoading(true)
+    setCatalogError(null)
+    try {
+      const [s, p, profile] = await Promise.all([
+        listServices(),
+        listProfessionals(),
+        getProfile(),
+      ])
+      if (stale()) return
+      setServices(s)
+      setProfessionals(p)
+      setBusinessSlug(profile.slug)
+      if (profile.timezone) setTimezone(profile.timezone)
+      if (s[0]) setServiceId(s[0].id)
+      if (p[0]) setProfessionalId(p[0].id)
+    } catch (err) {
+      if (stale()) return
+      setCatalogError(getErrorMessage(err))
+    } finally {
+      if (!stale()) setCatalogLoading(false)
+    }
+  }
+
   useEffect(() => {
-    void Promise.all([listServices(), listProfessionals(), getProfile()])
-      .then(([s, p, profile]) => {
-        setServices(s)
-        setProfessionals(p)
-        setBusinessSlug(profile.slug)
-        if (profile.timezone) setTimezone(profile.timezone)
-        if (s[0]) setServiceId(s[0].id)
-        if (p[0]) setProfessionalId(p[0].id)
-      })
-      .catch(() => undefined)
+    let cancelled = false
+    void loadCatalog({ ignore: () => cancelled })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
   }, [])
 
   const handleCreate = async (e: SubmitEvent) => {
@@ -271,6 +294,22 @@ export const AppointmentsPage = () => {
           <Alert>{error}</Alert>
         </div>
       ) : null}
+      {catalogError ? (
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Alert>
+            No se pudo cargar el catálogo (servicios/profesionales): {catalogError}
+          </Alert>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="shrink-0 self-start sm:self-center"
+            disabled={catalogLoading}
+            onClick={() => void loadCatalog()}
+          >
+            Reintentar
+          </Button>
+        </div>
+      ) : null}
       {rescheduleHint ? (
         <div className="mb-3">
           <Alert tone="info">
@@ -282,6 +321,13 @@ export const AppointmentsPage = () => {
       {showForm ? (
         <Card className="mb-4" interactive>
           <h2 className="mb-3 font-semibold">Cita asistida</h2>
+          {catalogLoading ? (
+            <p className="text-sm text-muted">Cargando servicios y profesionales…</p>
+          ) : catalogError ? (
+            <p className="text-sm text-muted">
+              Corrige el error de catálogo arriba para poder crear una cita asistida.
+            </p>
+          ) : (
           <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleCreate}>
             <div>
               <Label>Servicio</Label>
@@ -342,6 +388,7 @@ export const AppointmentsPage = () => {
               </Button>
             </div>
           </form>
+          )}
         </Card>
       ) : null}
 
