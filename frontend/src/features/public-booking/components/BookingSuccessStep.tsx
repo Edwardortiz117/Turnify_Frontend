@@ -2,7 +2,6 @@ import { formatInTimeZone } from '../../../shared/datetime'
 import { Button, Card, TextLink } from '../../../shared/ui'
 
 type Props = {
-  slug: string
   appointmentId: string
   startsAt?: string | null
   timezone: string
@@ -10,7 +9,6 @@ type Props = {
 }
 
 export function BookingSuccessStep({
-  slug,
   appointmentId,
   startsAt,
   timezone,
@@ -48,7 +46,7 @@ export function BookingSuccessStep({
         <Button variant="secondary" className="w-full sm:w-auto" onClick={onRequestReschedule}>
           Solicitar reprogramación
         </Button>
-        <TextLink to={`/${slug}/mis-citas`}>Ver mis citas</TextLink>
+        <TextLink to="/mis-citas">Ver mis citas</TextLink>
         <TextLink to={`/cancel/${appointmentId}`}>¿Necesitas cancelar?</TextLink>
       </div>
     </Card>

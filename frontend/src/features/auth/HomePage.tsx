@@ -67,12 +67,20 @@ export function HomePage() {
           <Link to="/login" className="w-full sm:w-auto">
             <Button
               variant="secondary"
-              className="w-full border-white/30 bg-white/10 text-white backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:bg-white/20 motion-reduce:hover:translate-y-0"
+              className="w-full border-white/30 bg-white/10 !text-brand-700 backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:bg-white/20 hover:!text-brand-800 motion-reduce:hover:translate-y-0"
             >
               Iniciar sesión
             </Button>
           </Link>
         </div>
+        <p className="home-rise home-rise-delay-5 mt-4">
+          <Link
+            to="/mis-citas"
+            className="text-sm font-semibold text-brand-300 hover:text-brand-200"
+          >
+            Consultar mis citas
+          </Link>
+        </p>
 
         <Card className="home-card-settle mt-10 w-full max-w-md space-y-4 transition duration-300 hover:bg-white/80">
           <form className="space-y-3" onSubmit={goToBooking} aria-label="Ir a reserva pública">

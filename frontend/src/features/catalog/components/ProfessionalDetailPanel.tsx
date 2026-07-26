@@ -41,6 +41,11 @@ export function ProfessionalDetailPanel({
   onSaveServices,
 }: Props) {
   const scheduleByDay = [...detail.schedule].sort((a, b) => a.day_of_week - b.day_of_week)
+  /** Solo activos del catálogo; si ya estaba asignado un inactivo, se muestra para poder quitarlo. */
+  const assignableServices = catalogServices.filter(
+    (s) => s.active || serviceIds.includes(s.id),
+  )
+  const hasActiveCatalog = catalogServices.some((s) => s.active)
 
   return (
     <div className="mt-4 space-y-6 rounded-xl border border-border bg-card p-4 sm:p-5" aria-live="polite">
@@ -104,13 +109,20 @@ export function ProfessionalDetailPanel({
             {savingServices ? 'Guardando…' : 'Guardar servicios'}
           </Button>
         </div>
-        {catalogServices.length === 0 ? (
+        {assignableServices.length === 0 ? (
           <p className="text-sm text-muted">
-            Aún no hay servicios en el catálogo. <TextLink to="/app/services">Crear servicios</TextLink>
+            {hasActiveCatalog ? (
+              <>No hay servicios disponibles para asignar.</>
+            ) : (
+              <>
+                No hay servicios activos en el catálogo.{' '}
+                <TextLink to="/app/services">Activar o crear servicios</TextLink>
+              </>
+            )}
           </p>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
-            {catalogServices.map((s) => {
+            {assignableServices.map((s) => {
               const checked = serviceIds.includes(s.id)
               return (
                 <label

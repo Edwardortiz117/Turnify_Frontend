@@ -141,6 +141,7 @@ export function AppRouter() {
           </Route>
         </Route>
 
+        <Route path="/mis-citas" element={<MyAppointmentsPage />} />
         <Route path="/:slug/mis-citas" element={<MyAppointmentsPage />} />
         <Route path="/:slug" element={<PublicBookingPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

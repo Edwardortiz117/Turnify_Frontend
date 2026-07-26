@@ -12,6 +12,10 @@ import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { ApiError } from '../../shared/api/ApiError'
 import { isInfrastructureErrorCode } from '../../shared/api/errorMessages'
 import { toDateInputValue } from '../../shared/datetime'
+import {
+  rememberBusiness,
+  setClientPhone,
+} from '../../shared/storage/clientAppointmentsStorage'
 import { PublicLayout, BrandLogo, Alert, EmptyState, PageLoading, TextLink, WizardSteps } from '../../shared/ui'
 import { PublicRescheduleRequestModal } from './PublicRescheduleRequestModal'
 import { BookingContactStep } from './components/BookingContactStep'
@@ -71,6 +75,11 @@ export function PublicBookingPage() {
           return
         }
         setBusiness(biz)
+        rememberBusiness({
+          slug: biz.slug || slug,
+          name: biz.name,
+          timezone: biz.timezone,
+        })
         const svc =
           biz.services?.filter((s) => s.active) ??
           (await listPublicServices(slug)).filter((s) => s.active)
@@ -159,6 +168,12 @@ export function PublicBookingPage() {
           JSON.stringify({ id: appt.id, slug, phone }),
         )
         localStorage.setItem(`turnify.phone.${slug}`, phone)
+        setClientPhone(phone)
+        rememberBusiness({
+          slug,
+          name: business?.name,
+          timezone: business?.timezone,
+        })
       } catch {
         /* ignore quota */
       }
@@ -220,7 +235,7 @@ export function PublicBookingPage() {
       <header className="mb-5 sm:mb-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <BrandLogo size="md" className="!mx-0" />
-          <TextLink to={`/${slug}/mis-citas`}>Mis citas</TextLink>
+          <TextLink to="/mis-citas">Mis citas</TextLink>
         </div>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-balance text-ink sm:text-3xl">
           {business.name}
@@ -307,7 +322,6 @@ export function PublicBookingPage() {
 
       {step === 'done' && appointmentId ? (
         <BookingSuccessStep
-          slug={slug}
           appointmentId={appointmentId}
           startsAt={slot?.starts_at}
           timezone={tz}

@@ -5,6 +5,7 @@ import {
   cancelAppointment,
   completeAppointment,
   createAppointment,
+  getAppointment,
   getProfile,
   listAppointments,
   listProfessionals,
@@ -15,6 +16,10 @@ import { RescheduleModal } from './RescheduleModal'
 import type { Appointment, Professional, Service } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { endOfDayIso, formatInTimeZone, datetimeLocalToUtcIso, startOfDayIso, toDateInputValue } from '../../shared/datetime'
+import {
+  discardRescheduleRequest,
+  findRescheduleRequestByAppointmentId,
+} from '../../shared/storage/rescheduleRequestStorage'
 import { Alert, AppointmentStatusBadge, Button, ConfirmDialog, Input, Label, Select, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui'
 
 export const AppointmentsPage = () => {
@@ -28,6 +33,9 @@ export const AppointmentsPage = () => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null)
+  const [rescheduleHint, setRescheduleHint] = useState<string | null>(null)
+  const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
+  const [focusId, setFocusId] = useState<string | null>(null)
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [businessSlug, setBusinessSlug] = useState('')
@@ -48,6 +56,72 @@ export const AppointmentsPage = () => {
       setSearchParams(next, { replace: true })
     }
   }, [searchParams, setSearchParams])
+
+  useEffect(() => {
+    const rescheduleId = searchParams.get('reschedule')
+    const focusParam = searchParams.get('focus')
+    if (!rescheduleId && !focusParam) return
+
+    let cancelled = false
+
+    void (async () => {
+      try {
+        const profile = businessSlug
+          ? { slug: businessSlug, timezone }
+          : await getProfile()
+        if (cancelled) return
+
+        const slug = businessSlug || profile.slug
+        const tz =
+          timezone ||
+          ('timezone' in profile && profile.timezone ? profile.timezone : 'America/Bogota')
+        if (!businessSlug) setBusinessSlug(slug)
+        if ('timezone' in profile && profile.timezone) setTimezone(profile.timezone)
+
+        const appointmentId = rescheduleId || focusParam
+        if (!appointmentId) return
+
+        const appt = await getAppointment(appointmentId)
+        if (cancelled) return
+
+        const day = toDateInputValue(new Date(appt.starts_at), tz)
+        setFrom(day)
+        setTo(day)
+        setFocusId(appt.id)
+
+        if (rescheduleId) {
+          if (appt.status !== 'confirmed') {
+            setError('Esa cita ya no está confirmada; no se puede reprogramar.')
+          } else {
+            const req = findRescheduleRequestByAppointmentId(slug, rescheduleId)
+            setRescheduleHint(req?.message ?? null)
+            setPendingRequestId(req?.id ?? null)
+            setRescheduleTarget(appt)
+          }
+        }
+      } catch (err) {
+        if (!cancelled) setError(getErrorMessage(err))
+      } finally {
+        if (cancelled) return
+        const next = new URLSearchParams(searchParams)
+        next.delete('reschedule')
+        next.delete('focus')
+        setSearchParams(next, { replace: true })
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+    // Only react to deep-link params; slug/tz may load later via profile.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get('reschedule'), searchParams.get('focus')])
+
+  useEffect(() => {
+    if (!focusId || loading) return
+    const el = document.getElementById(`appointment-${focusId}`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [focusId, loading, items])
 
   const refresh = async (opts?: { ignore?: () => boolean }) => {
     const stale = () => opts?.ignore?.() ?? false
@@ -141,7 +215,24 @@ export const AppointmentsPage = () => {
       setError('No se pudo cargar el negocio. Recarga e intenta de nuevo.')
       return
     }
+    const req = findRescheduleRequestByAppointmentId(businessSlug, appointment.id)
+    setRescheduleHint(req?.message ?? null)
+    setPendingRequestId(req?.id ?? null)
     setRescheduleTarget(appointment)
+  }
+
+  const handleCloseReschedule = () => {
+    setRescheduleTarget(null)
+    setRescheduleHint(null)
+    setPendingRequestId(null)
+  }
+
+  const handleRescheduleDone = () => {
+    if (pendingRequestId && businessSlug) {
+      discardRescheduleRequest(businessSlug, pendingRequestId)
+    }
+    handleCloseReschedule()
+    void refresh()
   }
 
   return (
@@ -178,6 +269,13 @@ export const AppointmentsPage = () => {
       {error ? (
         <div className="mb-3">
           <Alert>{error}</Alert>
+        </div>
+      ) : null}
+      {rescheduleHint ? (
+        <div className="mb-3">
+          <Alert tone="info">
+            Solicitud del cliente: {rescheduleHint}
+          </Alert>
         </div>
       ) : null}
 
@@ -261,7 +359,10 @@ export const AppointmentsPage = () => {
           {items.map((a) => (
             <Card
               key={a.id}
-              className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+              id={`appointment-${a.id}`}
+              className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between${
+                focusId === a.id ? ' ring-2 ring-brand-400' : ''
+              }`}
             >
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -319,8 +420,8 @@ export const AppointmentsPage = () => {
         appointment={rescheduleTarget}
         slug={businessSlug}
         timezone={timezone}
-        onClose={() => setRescheduleTarget(null)}
-        onDone={() => void refresh()}
+        onClose={handleCloseReschedule}
+        onDone={handleRescheduleDone}
       />
 
       <ConfirmDialog

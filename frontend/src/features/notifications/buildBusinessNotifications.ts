@@ -5,6 +5,8 @@ import type { AppNotification } from './types'
 
 const ALMOST_FULL_RATIO = 0.8
 const SLOT_MINUTES_FALLBACK = 30
+/** Cancelled appointments older than this (by starts_at) are ignored. */
+const CANCELLED_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000
 
 /** OpenAPI: 1=Mon … 7=Sun */
 function dayOfWeekMon1(dateStr: string): number {
@@ -28,6 +30,13 @@ function openMinutesForDay(slots: WeeklySlot[], day: number): number {
     }, 0)
 }
 
+function formatWhen(iso: string): string {
+  return new Date(iso).toLocaleString('es-CO', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })
+}
+
 export function buildBusinessNotifications(input: {
   now?: Date
   appointments: Appointment[]
@@ -39,6 +48,7 @@ export function buildBusinessNotifications(input: {
   const today = toDateInputValue(now)
   const todayDow = dayOfWeekMon1(today)
   const notifications: AppNotification[] = []
+  const cancelledCutoff = now.getTime() - CANCELLED_LOOKBACK_MS
 
   for (const req of input.rescheduleRequests ?? []) {
     const who = req.clientName?.trim() || req.phone
@@ -46,8 +56,25 @@ export function buildBusinessNotifications(input: {
       id: `reschedule-req:${req.id}`,
       title: 'Solicitud de reprogramación',
       body: `${who}: ${req.message}`,
-      href: '/app/appointments',
+      href: `/app/appointments?reschedule=${encodeURIComponent(req.appointmentId)}`,
       createdAt: req.createdAt,
+    })
+  }
+
+  for (const a of input.appointments) {
+    if (a.status !== 'cancelled') continue
+    // Skip staff-cancelled (manager already acted); notify public / unknown channel.
+    if (a.channel === 'staff') continue
+    const startsMs = new Date(a.starts_at).getTime()
+    if (startsMs < cancelledCutoff) continue
+
+    const client = a.client?.name ?? 'un cliente'
+    notifications.push({
+      id: `cancelled:${a.id}`,
+      title: 'Cita cancelada',
+      body: `${client} canceló la cita del ${formatWhen(a.starts_at)}.`,
+      href: `/app/appointments?focus=${encodeURIComponent(a.id)}`,
+      createdAt: a.starts_at,
     })
   }
 
@@ -56,15 +83,11 @@ export function buildBusinessNotifications(input: {
     if (new Date(a.starts_at).getTime() >= now.getTime()) continue
 
     const client = a.client?.name ?? 'un cliente'
-    const when = new Date(a.starts_at).toLocaleString('es-CO', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    })
     notifications.push({
       id: `expired:${a.id}`,
       title: 'Reservación vencida',
-      body: `La cita de ${client} (${when}) ya pasó y sigue confirmada.`,
-      href: '/app/appointments',
+      body: `La cita de ${client} (${formatWhen(a.starts_at)}) ya pasó y sigue confirmada.`,
+      href: `/app/appointments?focus=${encodeURIComponent(a.id)}`,
       createdAt: a.starts_at,
     })
   }

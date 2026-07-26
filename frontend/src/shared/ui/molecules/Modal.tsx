@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '../../lib/cn'
 
 const FOCUSABLE =
@@ -65,8 +66,8 @@ export function Modal({ open, title, onClose, children, className = '' }: ModalP
 
   if (!open) return null
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center sm:p-6">
       <div
         className="modal-backdrop-enter absolute inset-0 bg-ink/40"
         aria-hidden
@@ -78,7 +79,7 @@ export function Modal({ open, title, onClose, children, className = '' }: ModalP
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          'modal-panel-enter relative z-10 max-h-[min(90dvh,40rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-white/55 bg-white/80 p-4 shadow-lg shadow-slate-900/10 backdrop-blur-xl backdrop-saturate-150 sm:p-5 glass-popover',
+          'modal-panel-enter relative z-10 max-h-[min(calc(100dvh-2rem),40rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-white/55 bg-white/80 p-4 shadow-lg shadow-slate-900/10 backdrop-blur-xl backdrop-saturate-150 sm:max-h-[min(calc(100dvh-3rem),40rem)] sm:p-5 glass-popover',
           className,
         )}
       >
@@ -104,6 +105,7 @@ export function Modal({ open, title, onClose, children, className = '' }: ModalP
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

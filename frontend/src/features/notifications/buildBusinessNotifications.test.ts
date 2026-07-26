@@ -75,5 +75,34 @@ describe('buildBusinessNotifications', () => {
     })
     expect(notes[0]?.title).toBe('Solicitud de reprogramación')
     expect(notes[0]?.body).toContain('Paula')
+    expect(notes[0]?.href).toBe('/app/appointments?reschedule=a1')
+  })
+
+  it('flags cancelled public appointments', () => {
+    const now = new Date('2026-07-22T15:00:00.000Z')
+    const notes = buildBusinessNotifications({
+      now,
+      appointments: [
+        appt({
+          id: 'c1',
+          status: 'cancelled',
+          starts_at: '2026-07-25T14:00:00.000Z',
+          channel: 'self_service',
+        }),
+        appt({
+          id: 'c2',
+          status: 'cancelled',
+          starts_at: '2026-07-25T16:00:00.000Z',
+          channel: 'staff',
+        }),
+      ],
+      professionals: [pro],
+      schedulesByProfessionalId: {},
+    })
+    expect(notes.some((n) => n.id === 'cancelled:c1')).toBe(true)
+    expect(notes.some((n) => n.id === 'cancelled:c2')).toBe(false)
+    expect(notes.find((n) => n.id === 'cancelled:c1')?.href).toBe(
+      '/app/appointments?focus=c1',
+    )
   })
 })

@@ -101,7 +101,10 @@ export function ProfessionalsPage() {
     setSavingServices(true)
     setError(null)
     try {
-      const offered = await putProfessionalServices(detail.professional.id, serviceIds)
+      const activeIds = new Set(catalogServices.filter((s) => s.active).map((s) => s.id))
+      const toSave = serviceIds.filter((id) => activeIds.has(id))
+      const offered = await putProfessionalServices(detail.professional.id, toSave)
+      setServiceIds(offered.map((s) => s.id))
       setDetail({ ...detail, offered })
       toast.success('Servicios actualizados')
     } catch (err) {

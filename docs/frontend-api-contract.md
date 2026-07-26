@@ -31,6 +31,8 @@ Post-login routing: `scope === "platform"` → `/platform`; `scope === "business
 | POST | `/appointments/:appointmentId/cancel` | Body `{ phone }` |
 | POST | `/businesses/:slug/appointments/lookup` | Body `{ phone }` → citas confirmadas próximas |
 
+**Mis citas global (`/mis-citas`):** el frontend agrega lookups por cada negocio recordado en el dispositivo (no hay endpoint cross-tenant en el MVP). Cada cita muestra el negocio asociado.
+
 ## Business — `/api/v1/business` (JWT scope=business)
 
 Profile: GET/PATCH `name`, `slug`, `cancellation_min_hours`, `status` (`active`\|`suspended` = abrir/cerrar vitrina; **no** bloquea login).

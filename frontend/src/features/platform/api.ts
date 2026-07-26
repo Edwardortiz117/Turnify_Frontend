@@ -2,7 +2,6 @@ import { apiRequest } from '../../shared/api/client'
 import type {
   Business,
   BusinessStatus,
-  OkTrue,
   Paginated,
   PlatformDashboard,
   PlatformHealth,
@@ -89,7 +88,11 @@ export function assignManager(
     | { user_id: string }
     | { email: string; password: string; document: string },
 ) {
-  return apiRequest<OkTrue>(`/platform/businesses/${businessId}/manager`, {
+  return apiRequest<{
+    business_id?: string
+    manager?: { id: string; email: string; document?: string | null }
+    ok?: boolean
+  }>(`/platform/businesses/${businessId}/manager`, {
     method: 'POST',
     auth: true,
     body,

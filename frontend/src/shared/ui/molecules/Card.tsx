@@ -6,14 +6,17 @@ export function Card({
   children,
   className = '',
   interactive = false,
+  id,
 }: {
   children: ReactNode
   className?: string
   /** Prefer false for static metrics; true for forms / clickable panels. */
   interactive?: boolean
+  id?: string
 }) {
   return (
     <div
+      id={id}
       className={cn(
         'rounded-xl p-3.5 sm:p-4',
         glassPanelClass,

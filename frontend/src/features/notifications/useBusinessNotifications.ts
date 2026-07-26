@@ -5,13 +5,17 @@ import {
   listAppointments,
   listProfessionals,
 } from '../../shared/api/business'
-import { readRescheduleRequests } from '../../shared/storage/rescheduleRequestStorage'
+import {
+  onRescheduleRequestsChanged,
+  readRescheduleRequests,
+} from '../../shared/storage/rescheduleRequestStorage'
 import { endOfDayIso, startOfDayIso, toDateInputValue } from '../../shared/datetime'
+import type { Appointment } from '../../shared/api/types'
 import { buildBusinessNotifications } from './buildBusinessNotifications'
 import { readDismissedIds, writeDismissedIds } from './dismissStorage'
 import type { AppNotification, NotificationSource } from './types'
 
-const POLL_MS = 60_000
+const POLL_MS = 45_000
 
 function shiftDateStr(dateStr: string, deltaDays: number): string {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -30,16 +34,27 @@ export function useBusinessNotifications(): NotificationSource {
   const refresh = useCallback(async () => {
     const today = toDateInputValue()
     const fromDate = shiftDateStr(today, -7)
+    const toDate = shiftDateStr(today, 45)
     try {
-      const [pros, appts, profile] = await Promise.all([
+      const [pros, appts, cancelledAppts, profile] = await Promise.all([
         listProfessionals(),
         listAppointments({
           from: startOfDayIso(fromDate),
-          to: endOfDayIso(today),
+          to: endOfDayIso(toDate),
           limit: 200,
+        }),
+        listAppointments({
+          from: startOfDayIso(fromDate),
+          to: endOfDayIso(toDate),
+          status: 'cancelled',
+          limit: 100,
         }),
         getProfile(),
       ])
+      const byId = new Map<string, Appointment>()
+      for (const a of appts.items ?? []) byId.set(a.id, a)
+      for (const a of cancelledAppts.items ?? []) byId.set(a.id, a)
+
       const active = pros.filter((p) => p.status === 'active')
       const schedules = await Promise.all(
         active.map(async (p) => {
@@ -53,7 +68,7 @@ export function useBusinessNotifications(): NotificationSource {
       )
       setItems(
         buildBusinessNotifications({
-          appointments: appts.items ?? [],
+          appointments: [...byId.values()],
           professionals: active,
           schedulesByProfessionalId: Object.fromEntries(schedules),
           rescheduleRequests: readRescheduleRequests(profile.slug),
@@ -69,7 +84,18 @@ export function useBusinessNotifications(): NotificationSource {
   useEffect(() => {
     void refresh()
     const id = window.setInterval(() => void refresh(), POLL_MS)
-    return () => window.clearInterval(id)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    const unsub = onRescheduleRequestsChanged(() => void refresh())
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+      unsub()
+    }
   }, [refresh])
 
   const visible = useMemo(

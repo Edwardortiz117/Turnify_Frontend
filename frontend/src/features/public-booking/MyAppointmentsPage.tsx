@@ -6,83 +6,152 @@ import {
   lookupPublicAppointments,
 } from '../../shared/api/public'
 import { PublicRescheduleRequestModal } from './PublicRescheduleRequestModal'
-import type { Appointment, PublicBusiness } from '../../shared/api/types'
+import type { Appointment } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
-import { ApiError } from '../../shared/api/ApiError'
-import { isInfrastructureErrorCode } from '../../shared/api/errorMessages'
 import { formatInTimeZone } from '../../shared/datetime'
-import { PublicLayout, BrandLogo, Alert, AppointmentStatusBadge, Button, Input, Label, Card, EmptyState, PageLoading, TextLink } from '../../shared/ui'
+import {
+  getClientPhone,
+  listRememberedBusinesses,
+  migrateLegacyClientPhone,
+  rememberBusiness,
+  setClientPhone,
+  type RememberedBusiness,
+} from '../../shared/storage/clientAppointmentsStorage'
+import {
+  PublicLayout,
+  BrandLogo,
+  Alert,
+  AppointmentStatusBadge,
+  Button,
+  Input,
+  Label,
+  Card,
+  EmptyState,
+  TextLink,
+} from '../../shared/ui'
 
-const PHONE_KEY = (slug: string) => `turnify.myAppointments.phone.${slug}`
+export type ClientAppointment = Appointment & {
+  business: RememberedBusiness
+}
 
-export const MyAppointmentsPage = () => {
-  const { slug = '' } = useParams()
-  const navigate = useNavigate()
-  const [business, setBusiness] = useState<PublicBusiness | null>(null)
-  const [phone, setPhone] = useState(() => {
-    try {
-      return localStorage.getItem(PHONE_KEY(slug)) ?? ''
-    } catch {
-      return ''
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+async function lookupAcrossBusinesses(
+  phone: string,
+  businesses: RememberedBusiness[],
+): Promise<{ items: ClientAppointment[]; warnings: string[] }> {
+  const warnings: string[] = []
+  const settled = await Promise.allSettled(
+    businesses.map(async (biz) => {
+      const res = await lookupPublicAppointments(biz.slug, phone)
+      return (res.items ?? []).map(
+        (a): ClientAppointment => ({
+          ...a,
+          business: biz,
+        }),
+      )
+    }),
+  )
+
+  const items: ClientAppointment[] = []
+  settled.forEach((result, i) => {
+    const biz = businesses[i]
+    if (result.status === 'fulfilled') {
+      items.push(...result.value)
+      return
     }
+    warnings.push(`No se pudieron cargar citas de /${biz.slug}.`)
   })
-  const [items, setItems] = useState<Appointment[]>([])
+
+  items.sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+  return { items, warnings }
+}
+
+/**
+ * Global client appointments hub (not tied to a single business URL).
+ * Aggregates lookup across businesses remembered on this device.
+ */
+export function MyAppointmentsPage() {
+  const { slug: routeSlug = '' } = useParams()
+  const navigate = useNavigate()
+  const seededSlug = slugify(routeSlug)
+
+  const [phone, setPhone] = useState(() => migrateLegacyClientPhone(seededSlug) || getClientPhone())
+  const [businesses, setBusinesses] = useState<RememberedBusiness[]>(() =>
+    listRememberedBusinesses(),
+  )
+  const [items, setItems] = useState<ClientAppointment[]>([])
+  const [addSlug, setAddSlug] = useState('')
   const [searched, setSearched] = useState(false)
-  const [loadingBiz, setLoadingBiz] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [adding, setAdding] = useState(false)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [warnings, setWarnings] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
-  const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null)
+  const [rescheduleTarget, setRescheduleTarget] = useState<ClientAppointment | null>(null)
 
-  const tz = business?.timezone || 'America/Bogota'
+  const [autoLookupDone, setAutoLookupDone] = useState(false)
 
+  // Seed business from /:slug/mis-citas deep link
   useEffect(() => {
+    if (!seededSlug) return
     let cancelled = false
-    async function load() {
-      setLoadingBiz(true)
-      setError(null)
-      try {
-        const biz = await getBusinessBySlug(slug)
+    void getBusinessBySlug(seededSlug)
+      .then((biz) => {
         if (cancelled) return
-        if (biz.status === 'suspended') {
-          setError('BUSINESS_SUSPENDED')
-          setBusiness(biz)
-          return
-        }
-        setBusiness(biz)
-      } catch (err) {
-        if (!cancelled) {
-          if (err instanceof ApiError && err.code === 'BUSINESS_SUSPENDED') {
-            setError('BUSINESS_SUSPENDED')
-          } else if (err instanceof ApiError && isInfrastructureErrorCode(err.code)) {
-            setError(err.code)
-          } else if (err instanceof ApiError && (err.code === 'NOT_FOUND' || err.status === 404)) {
-            setError('NOT_FOUND')
-          } else {
-            setError(getErrorMessage(err))
-          }
-        }
-      } finally {
-        if (!cancelled) setLoadingBiz(false)
-      }
-    }
-    void load()
+        const next = rememberBusiness({
+          slug: biz.slug || seededSlug,
+          name: biz.name,
+          timezone: biz.timezone,
+        })
+        setBusinesses(next)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setBusinesses(rememberBusiness({ slug: seededSlug, name: seededSlug }))
+      })
     return () => {
       cancelled = true
     }
-  }, [slug])
+  }, [seededSlug])
 
-  const handleLookup = async (e?: SubmitEvent) => {
+  async function handleLookup(e?: SubmitEvent) {
     e?.preventDefault()
     setError(null)
     setMessage(null)
+    setWarnings([])
+    const cleanPhone = phone.trim()
+    if (!cleanPhone) {
+      setError('Ingresa el teléfono de la reserva.')
+      return
+    }
+
+    const known = listRememberedBusinesses()
+    setBusinesses(known)
+    if (known.length === 0) {
+      setSearched(true)
+      setItems([])
+      setError(
+        'Aún no hay negocios en este dispositivo. Agrega el enlace (slug) de un negocio donde reservaste.',
+      )
+      return
+    }
+
     setBusy(true)
     setSearched(true)
+    setClientPhone(cleanPhone)
     try {
-      localStorage.setItem(PHONE_KEY(slug), phone.trim())
-      const res = await lookupPublicAppointments(slug, phone.trim())
-      setItems(res.items ?? [])
+      const { items: found, warnings: w } = await lookupAcrossBusinesses(cleanPhone, known)
+      setItems(found)
+      setWarnings(w)
     } catch (err) {
       setItems([])
       setError(getErrorMessage(err))
@@ -92,13 +161,54 @@ export const MyAppointmentsPage = () => {
   }
 
   useEffect(() => {
-    if (!business || !phone.trim()) return
+    if (autoLookupDone) return
+    if (!phone.trim() || businesses.length === 0) return
+    setAutoLookupDone(true)
     void handleLookup()
-    // Auto-lookup once when business loads and a remembered phone exists
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [business?.id])
+  }, [autoLookupDone, phone, businesses])
 
-  const handleCancel = async (appointmentId: string) => {
+  async function handleAddBusiness(e: SubmitEvent) {
+    e.preventDefault()
+    setError(null)
+    setMessage(null)
+    const clean = slugify(addSlug)
+    if (!clean) {
+      setError('Escribe el slug del negocio (ej. mi-barberia).')
+      return
+    }
+    setAdding(true)
+    try {
+      const biz = await getBusinessBySlug(clean)
+      if (biz.status === 'suspended') {
+        setError('Ese negocio no está disponible por ahora.')
+        return
+      }
+      const next = rememberBusiness({
+        slug: biz.slug || clean,
+        name: biz.name,
+        timezone: biz.timezone,
+      })
+      setBusinesses(next)
+      setAddSlug('')
+      setMessage(`Negocio agregado: ${biz.name}`)
+      if (phone.trim()) {
+        setBusy(true)
+        setSearched(true)
+        setClientPhone(phone.trim())
+        const { items: found, warnings: w } = await lookupAcrossBusinesses(phone.trim(), next)
+        setItems(found)
+        setWarnings(w)
+      }
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setAdding(false)
+      setBusy(false)
+    }
+  }
+
+  async function handleCancel(appointmentId: string) {
     setError(null)
     setMessage(null)
     setCancellingId(appointmentId)
@@ -113,57 +223,23 @@ export const MyAppointmentsPage = () => {
     }
   }
 
-  if (loadingBiz) {
-    return (
-      <PublicLayout>
-        <PageLoading />
-      </PublicLayout>
-    )
-  }
-
-  if (error === 'BUSINESS_SUSPENDED' || business?.status === 'suspended') {
-    return (
-      <PublicLayout>
-        <EmptyState
-          title="Negocio no disponible"
-          description="Este negocio está temporalmente suspendido o cerrado."
-        />
-      </PublicLayout>
-    )
-  }
-
-  if (!business) {
-    const unavailable = error === 'NETWORK_ERROR' || error === 'PROXY_ERROR' || error === 'INTERNAL_ERROR'
-    return (
-      <PublicLayout>
-        <EmptyState
-          title={unavailable ? 'No pudimos cargar el negocio' : 'Negocio no encontrado'}
-          description={
-            unavailable
-              ? 'Intenta de nuevo en unos momentos. Si el problema continúa, vuelve más tarde.'
-              : 'No hay un negocio con ese enlace. Revisa el slug o pide el enlace correcto al negocio.'
-          }
-        />
-      </PublicLayout>
-    )
-  }
-
   return (
     <PublicLayout wide>
       <header className="mb-5 sm:mb-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <BrandLogo size="md" className="!mx-0" />
-          <TextLink to={`/${slug}`}>Reservar cita</TextLink>
+          <TextLink to="/">Ir al inicio</TextLink>
         </div>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-balance text-ink sm:text-3xl">
           Mis citas
         </h1>
         <p className="mt-1.5 max-w-xl text-sm text-pretty text-muted">
-          Consulta y gestiona tus reservas en {business.name} con el teléfono de la reserva.
+          Consulta reservas de todos los negocios Turnify que hayas visitado en este dispositivo,
+          con el teléfono de la reserva.
         </p>
       </header>
 
-      <Card className="mb-4">
+      <Card className="mb-4 space-y-4">
         <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={handleLookup}>
           <div className="min-w-0 flex-1">
             <Label htmlFor="my-phone">Teléfono</Label>
@@ -180,13 +256,59 @@ export const MyAppointmentsPage = () => {
             {busy ? 'Buscando…' : 'Ver citas'}
           </Button>
         </form>
+
+        <form
+          className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-end"
+          onSubmit={(e) => void handleAddBusiness(e)}
+        >
+          <div className="min-w-0 flex-1">
+            <Label htmlFor="add-business-slug">Agregar negocio (slug)</Label>
+            <div className="flex min-w-0 items-stretch overflow-hidden rounded-lg border border-border bg-card focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-500/20">
+              <span className="flex items-center bg-slate-50 px-3 font-mono text-sm text-muted">
+                /
+              </span>
+              <Input
+                id="add-business-slug"
+                className="rounded-none border-0 shadow-none focus:ring-0"
+                value={addSlug}
+                onChange={(e) => setAddSlug(slugify(e.target.value))}
+                placeholder="nombre-del-negocio"
+                autoComplete="off"
+              />
+            </div>
+            <p className="mt-1 text-xs text-muted">
+              Si reservaste en otro local, agrégalo aquí para incluirlo en la búsqueda.
+            </p>
+          </div>
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={adding}
+            className="w-full sm:w-auto"
+            aria-busy={adding}
+          >
+            {adding ? 'Agregando…' : 'Agregar'}
+          </Button>
+        </form>
+
+        {businesses.length > 0 ? (
+          <p className="text-xs text-muted">
+            Negocios en este dispositivo:{' '}
+            {businesses.map((b) => b.name).join(' · ')}
+          </p>
+        ) : null}
       </Card>
 
-      {error && error !== 'BUSINESS_SUSPENDED' ? (
+      {error ? (
         <div className="mb-3">
           <Alert>{error}</Alert>
         </div>
       ) : null}
+      {warnings.map((w) => (
+        <div key={w} className="mb-2">
+          <Alert tone="warning">{w}</Alert>
+        </div>
+      ))}
       {message ? (
         <div className="mb-3">
           <Alert tone="success">{message}</Alert>
@@ -196,60 +318,75 @@ export const MyAppointmentsPage = () => {
       {searched && !busy && items.length === 0 && !error ? (
         <EmptyState
           title="Sin citas activas"
-          description="No hay reservas confirmadas próximas con este teléfono."
-          actionLabel="Reservar cita"
-          onAction={() => navigate(`/${slug}`)}
+          description="No hay reservas confirmadas próximas con este teléfono en los negocios guardados."
+          actionLabel="Ir al inicio"
+          onAction={() => navigate('/')}
         />
       ) : null}
 
       {items.length > 0 ? (
         <div className="space-y-3">
-          {items.map((a) => (
-            <Card key={a.id} className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <AppointmentStatusBadge status={a.status} />
-                <span className="font-semibold text-ink">
-                  {a.service?.name ?? 'Servicio'}
-                </span>
-              </div>
-              <p className="text-sm text-muted">
-                {formatInTimeZone(a.starts_at, tz)}
-                {a.professional?.name ? ` · ${a.professional.name}` : ''}
-              </p>
-              <p className="font-mono text-xs text-muted break-all">ID: {a.id}</p>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Button
-                  variant="secondary"
-                  className="w-full sm:w-auto"
-                  onClick={() => setRescheduleTarget(a)}
-                >
-                  Solicitar reprogramación
-                </Button>
-                <Button
-                  variant="danger"
-                  className="w-full sm:w-auto"
-                  disabled={cancellingId === a.id}
-                  aria-busy={cancellingId === a.id}
-                  onClick={() => void handleCancel(a.id)}
-                >
-                  {cancellingId === a.id ? 'Cancelando…' : 'Cancelar cita'}
-                </Button>
-              </div>
-            </Card>
-          ))}
+          {items.map((a) => {
+            const tz = a.business.timezone || 'America/Bogota'
+            return (
+              <Card key={`${a.business.slug}-${a.id}`} className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <AppointmentStatusBadge status={a.status} />
+                  <span className="font-semibold text-ink">
+                    {a.service?.name ?? 'Servicio'}
+                  </span>
+                </div>
+                <p className="text-sm font-medium text-brand-800">
+                  {a.business.name}
+                  <span className="font-mono text-xs font-normal text-muted">
+                    {' '}
+                    /{a.business.slug}
+                  </span>
+                </p>
+                <p className="text-sm text-muted">
+                  {formatInTimeZone(a.starts_at, tz)}
+                  {a.professional?.name ? ` · ${a.professional.name}` : ''}
+                </p>
+                <p className="font-mono text-xs text-muted break-all">ID: {a.id}</p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <Link to={`/${a.business.slug}`} className="w-full sm:w-auto">
+                    <Button variant="secondary" className="w-full">
+                      Ir al negocio
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                    onClick={() => setRescheduleTarget(a)}
+                  >
+                    Solicitar reprogramación
+                  </Button>
+                  <Button
+                    variant="danger"
+                    className="w-full sm:w-auto"
+                    disabled={cancellingId === a.id}
+                    aria-busy={cancellingId === a.id}
+                    onClick={() => void handleCancel(a.id)}
+                  >
+                    {cancellingId === a.id ? 'Cancelando…' : 'Cancelar cita'}
+                  </Button>
+                </div>
+              </Card>
+            )
+          })}
         </div>
       ) : null}
 
       <p className="mt-6 text-center text-sm text-muted">
-        <Link to={`/${slug}`} className="font-semibold text-brand-700 hover:underline">
-          ← Volver a reservar
+        <Link to="/" className="font-semibold text-brand-700 hover:underline">
+          ← Volver al inicio
         </Link>
       </p>
 
       {rescheduleTarget ? (
         <PublicRescheduleRequestModal
           open
-          slug={slug}
+          slug={rescheduleTarget.business.slug}
           appointmentId={rescheduleTarget.id}
           defaultPhone={phone}
           clientName={rescheduleTarget.client?.name}
