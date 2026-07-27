@@ -27,6 +27,7 @@ export function LoginPage() {
         scope: res.scope,
         business_id: res.business_id,
         email,
+        businesses: res.businesses,
       })
       const defaultTarget = res.scope === 'platform' ? '/platform' : '/app'
       const safeFrom =

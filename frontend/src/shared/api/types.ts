@@ -20,11 +20,20 @@ export interface ApiErrorBody {
   }
 }
 
+/** Business membership summary returned by login / register / switch-business / me. */
+export interface SessionBusiness {
+  id: string
+  name: string
+  slug: string
+  status?: BusinessStatus
+}
+
 export interface UserMe {
   user_id: string
   email: string
   scope: AuthScope
   business_id?: string
+  businesses?: SessionBusiness[]
 }
 
 export interface AuthTokenResponse {
@@ -33,8 +42,16 @@ export interface AuthTokenResponse {
   expires_in: number
   scope: AuthScope
   business_id?: string
+  business_status?: BusinessStatus
+  businesses?: SessionBusiness[]
   user?: { id: string; email: string; document?: string | null }
   business?: { id: string; name: string; slug: string }
+}
+
+export interface BusinessManager {
+  id: string
+  email: string
+  document?: string | null
 }
 
 export interface Business {
@@ -47,7 +64,10 @@ export interface Business {
   manager_document?: string | null
   suspended_at?: string | null
   suspension_reason?: string | null
-  manager?: { id: string; email: string; document?: string | null } | null
+  /** All managers linked to this tenant (platform detail). */
+  managers?: BusinessManager[]
+  /** @deprecated Prefer `managers[]` — first manager for older clients. */
+  manager?: BusinessManager | null
 }
 
 export interface Service {

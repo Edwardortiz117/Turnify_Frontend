@@ -1,3 +1,5 @@
+import type { SessionBusiness } from '../api/types'
+
 const STORAGE_KEY = 'turnify.session'
 
 export interface Session {
@@ -5,6 +7,8 @@ export interface Session {
   scope: 'business' | 'platform'
   business_id?: string
   email?: string
+  /** Manager memberships (business scope). Active tenant is `business_id`. */
+  businesses?: SessionBusiness[]
 }
 
 type SessionClearedListener = () => void

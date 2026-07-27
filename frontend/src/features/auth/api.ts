@@ -18,6 +18,15 @@ export function me() {
   return apiRequest<UserMe>('/auth/me', { auth: true })
 }
 
+/** Replace JWT active business_id; returns fresh token + businesses[]. */
+export function switchBusiness(businessId: string) {
+  return apiRequest<AuthTokenResponse>('/auth/switch-business', {
+    method: 'POST',
+    auth: true,
+    body: { business_id: businessId },
+  })
+}
+
 export function forgotPassword(input: { email: string }) {
   return apiRequest<{ ok: boolean; reset_token?: string }>('/auth/forgot-password', {
     method: 'POST',

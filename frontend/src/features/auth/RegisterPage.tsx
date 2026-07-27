@@ -2,6 +2,7 @@ import { useState, type SubmitEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from './api'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { ApiError } from '../../shared/api/ApiError'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { AuthLayout, Alert, Button, Card, FormFieldInput } from '../../shared/ui'
 
@@ -14,6 +15,19 @@ function slugify(value: string) {
     .replace(/^-|-$/g, '')
 }
 
+function isAccountConflict(err: unknown): boolean {
+  if (!(err instanceof ApiError)) return false
+  if (
+    err.code === 'EMAIL_ALREADY_REGISTERED' ||
+    err.code === 'DOCUMENT_ALREADY_REGISTERED'
+  ) {
+    return true
+  }
+  if (err.code !== 'CONFLICT') return false
+  const raw = (err.rawMessage ?? err.message).toLowerCase()
+  return raw.includes('email') || raw.includes('document')
+}
+
 export function RegisterPage() {
   const { setSessionFromAuth } = useAuth()
   const navigate = useNavigate()
@@ -24,11 +38,13 @@ export function RegisterPage() {
   const [slug, setSlug] = useState('')
   const [slugTouched, setSlugTouched] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [accountExists, setAccountExists] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function onSubmit(e: SubmitEvent) {
     e.preventDefault()
     setError(null)
+    setAccountExists(false)
     const doc = documentId.trim()
     if (!doc || doc.length < 5) {
       setError('Ingresa un documento válido (mínimo 5 caracteres).')
@@ -47,10 +63,12 @@ export function RegisterPage() {
         scope: res.scope,
         business_id: res.business_id ?? res.business?.id,
         email: res.user?.email ?? email,
+        businesses: res.businesses,
       })
       navigate('/app', { replace: true })
     } catch (err) {
       setError(getErrorMessage(err))
+      setAccountExists(isAccountConflict(err))
     } finally {
       setLoading(false)
     }
@@ -62,11 +80,20 @@ export function RegisterPage() {
         Registrar negocio
       </h1>
       <p className="home-rise home-rise-delay-3 mb-6 text-sm text-pretty text-slate-300 sm:text-base">
-        Crea tu cuenta y publica el enlace de reservas.
+        Alta de una cuenta nueva. Si el correo o documento ya existen, inicia
+        sesión; otro negocio se vincula desde plataforma (o con el selector del
+        panel si ya tienes varios).
       </p>
 
       <Card className="home-card-settle space-y-4">
         {error ? <Alert>{error}</Alert> : null}
+        {accountExists ? (
+          <Alert tone="info">
+            Este registro no agrega un segundo negocio a una cuenta existente.
+            Inicia sesión con tu cuenta o pide a plataforma que cree el negocio y
+            te vincule. Luego usa el selector de negocio en el panel.
+          </Alert>
+        ) : null}
         <form className="space-y-3.5" onSubmit={onSubmit}>
           <FormFieldInput
             id="businessName"

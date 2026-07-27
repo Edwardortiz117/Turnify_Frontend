@@ -11,6 +11,9 @@ export const ERROR_MESSAGES_ES: Record<string, string> = {
   SLOT_OCCUPIED: 'Ese horario acabó de ocuparse. Elige otro.',
   PROFESSIONAL_INACTIVE: 'El profesional no está disponible.',
   INVALID_STATE_TRANSITION: 'No se puede cambiar el estado de esta cita.',
+  EMAIL_ALREADY_REGISTERED: 'Ese correo ya está registrado.',
+  DOCUMENT_ALREADY_REGISTERED: 'Ese documento ya está registrado.',
+  DOCUMENT_MISMATCH: 'El documento no coincide con la cuenta de este correo.',
   SLUG_ALREADY_EXISTS: 'Ese enlace (slug) ya está en uso.',
   CONFLICT: 'Hay un conflicto con los datos enviados.',
   OUTSIDE_AVAILABILITY: 'El horario está fuera de la disponibilidad.',
@@ -33,6 +36,12 @@ export function isInfrastructureErrorCode(code: string): boolean {
 }
 
 export function messageForErrorCode(code: string, fallback?: string): string {
+  if (code === 'CONFLICT' && fallback) {
+    const m = fallback.toLowerCase()
+    if (m.includes('email')) return ERROR_MESSAGES_ES.EMAIL_ALREADY_REGISTERED
+    if (m.includes('document')) return ERROR_MESSAGES_ES.DOCUMENT_ALREADY_REGISTERED
+    if (m.includes('slug')) return ERROR_MESSAGES_ES.SLUG_ALREADY_EXISTS
+  }
   const mapped = ERROR_MESSAGES_ES[code]
   if (mapped) return mapped
   if (fallback && looksLikeInfrastructureMessage(fallback)) {

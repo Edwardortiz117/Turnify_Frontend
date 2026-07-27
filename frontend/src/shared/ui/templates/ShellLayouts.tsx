@@ -46,6 +46,7 @@ export function ShellFrame({
   profileTo,
   headerActions,
   headerTitle,
+  contentKey,
   primaryAction,
   onLogout,
 }: {
@@ -55,8 +56,10 @@ export function ShellFrame({
   links: ShellLink[]
   profileTo?: string
   headerActions?: ReactNode
-  /** Centered title in the top bar (e.g. business name). */
-  headerTitle?: string
+  /** Centered title or control in the top bar (e.g. business name / switcher). */
+  headerTitle?: ReactNode
+  /** Remount main outlet when this changes (e.g. active business_id). */
+  contentKey?: string
   primaryAction?: { to: string; label: string }
   onLogout: () => void
 }) {
@@ -209,12 +212,16 @@ export function ShellFrame({
 
           <div className="min-w-0 max-w-[min(100%,18rem)] justify-self-center px-1 text-center sm:max-w-md">
             {headerTitle ? (
-              <p
-                className="truncate text-sm font-semibold text-brand-800 transition-colors duration-200 sm:text-base"
-                title={headerTitle}
-              >
-                {headerTitle}
-              </p>
+              typeof headerTitle === 'string' ? (
+                <p
+                  className="truncate text-sm font-semibold text-brand-800 transition-colors duration-200 sm:text-base"
+                  title={headerTitle}
+                >
+                  {headerTitle}
+                </p>
+              ) : (
+                headerTitle
+              )
             ) : (
               <span className="sr-only">Turnify</span>
             )}
@@ -232,7 +239,7 @@ export function ShellFrame({
         </header>
 
         <main id="main-content" className="min-w-0 flex-1 px-4 py-4 pb-5 sm:px-6 sm:py-5 lg:px-8">
-          <div className="surface-enter mx-auto w-full max-w-7xl">
+          <div key={contentKey} className="surface-enter mx-auto w-full max-w-7xl">
             <Outlet />
           </div>
         </main>

@@ -59,7 +59,7 @@ export function PlatformBusinessDetailPage() {
         suspension_reason: res.suspension_reason,
       })
       toast.success(
-        'Negocio dado de baja: vitrina cerrada y acceso de gerentes bloqueado (ACCESS_DISABLED).',
+        'Negocio dado de baja: vitrina cerrada. El login solo se bloquea si era la única membresía del gerente.',
       )
       setConfirmSuspend(false)
       setSuspendReason('')
@@ -157,6 +157,13 @@ export function PlatformBusinessDetailPage() {
     )
   }
 
+  const managers =
+    business.managers && business.managers.length > 0
+      ? business.managers
+      : business.manager
+        ? [business.manager]
+        : []
+
   return (
     <div>
       <PageHeader title={business.name} subtitle={`/${business.slug}`} />
@@ -177,15 +184,23 @@ export function PlatformBusinessDetailPage() {
         {business.suspension_reason ? (
           <p className="text-sm text-muted">Motivo baja: {business.suspension_reason}</p>
         ) : null}
-        {business.manager ? (
-          <p className="text-sm">
-            Gerente: <span className="font-medium">{business.manager.email}</span>
-            {business.manager.document ? (
-              <span className="text-muted"> · doc {business.manager.document}</span>
-            ) : null}
-          </p>
+        {managers.length === 0 ? (
+          <p className="text-sm text-muted">Sin gerentes vinculados.</p>
         ) : (
-          <p className="text-sm text-muted">Sin gerente vinculado.</p>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-ink">Gerentes ({managers.length})</p>
+            <ul className="divide-y divide-border/70 rounded-lg border border-border/80 bg-white/50">
+              {managers.map((m) => (
+                <li key={m.id} className="px-3 py-2.5 text-sm">
+                  <p className="font-medium text-ink">{m.email}</p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {m.document ? `Doc ${m.document}` : 'Sin documento'}
+                    <span className="text-muted/80"> · {m.id}</span>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         {business.status === 'suspended' ? (
@@ -218,8 +233,8 @@ export function PlatformBusinessDetailPage() {
       <Card className="mb-4">
         <h2 className="mb-1 font-semibold">Vincular gerente</h2>
         <p className="mb-3 text-sm text-pretty text-muted">
-          Prioriza el documento. El usuario debe existir como gerente sin membresía, o créalo
-          abajo.
+          Un negocio puede tener varios gerentes. Prioriza el documento; también
+          puedes crear un usuario nuevo o vincular por UUID.
         </p>
         <form className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap" onSubmit={onAssignByDocument}>
           <div className="min-w-0 flex-1 sm:min-w-[220px]">
@@ -296,7 +311,7 @@ export function PlatformBusinessDetailPage() {
       <ConfirmDialog
         open={confirmSuspend}
         title="Dar de baja"
-        description="Esto cierra la vitrina y bloquea el login de todos los gerentes del tenant."
+        description="Esto cierra la vitrina pública. El login de un gerente solo se bloquea si este era su único negocio."
         confirmLabel="Confirmar baja"
         danger
         loading={statusLoading}

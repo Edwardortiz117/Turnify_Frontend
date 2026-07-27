@@ -10,7 +10,14 @@ export function getErrorMessage(err: unknown): string {
       const detailText = formatValidationDetails(err.details)
       if (detailText) return detailText
     }
-    return messageForErrorCode(err.code, err.message)
+    if (err.code === 'CONFLICT' && err.details) {
+      const field = err.details.field
+      if (field === 'email') return messageForErrorCode('EMAIL_ALREADY_REGISTERED')
+      if (field === 'document') return messageForErrorCode('DOCUMENT_ALREADY_REGISTERED')
+      if (field === 'slug') return messageForErrorCode('SLUG_ALREADY_EXISTS')
+    }
+    // Prefer original API text for CONFLICT field detection.
+    return messageForErrorCode(err.code, err.rawMessage ?? err.message)
   }
   if (err instanceof Error) {
     if (isBrowserNetworkFailure(err) || looksLikeInfrastructureMessage(err.message)) {
@@ -43,7 +50,6 @@ function formatValidationDetails(details: Record<string, unknown>): string | nul
     return formErrors.filter((m): m is string => typeof m === 'string').join(' ')
   }
 
-  // Backend Zod middleware: { user_id: "Invalid uuid", ... }
   const flatParts = Object.entries(details)
     .filter(([key]) => key !== 'fieldErrors' && key !== 'formErrors')
     .flatMap(([field, msgs]) => {

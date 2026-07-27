@@ -10,14 +10,17 @@ Errors: `{ "error": { "code": string, "message": string, "details": object } }`
 
 | Method | Path | Auth | Body / notes |
 |--------|------|------|--------------|
-| POST | `/register` | No | `{ email, password, document, business: { name, slug } }` → 201 token + user + business |
-| POST | `/login` | No | `{ email, password }` → `TokenResponse` (may 403 `ACCESS_DISABLED`) |
-| GET | `/me` | Bearer | `{ user_id, email, scope, business_id? }` |
+| POST | `/register` | No | `{ email, password, document, business: { name, slug } }` → 201 token + user + business + `businesses[]` |
+| POST | `/login` | No | `{ email, password }` → `TokenResponse` (may 403 `ACCESS_DISABLED`). Business scope includes `businesses[]` and active `business_id` (first membership by default). |
+| GET | `/me` | Bearer | `{ user_id, email, scope, business_id?, businesses? }` |
+| POST | `/switch-business` | Bearer (business) | `{ business_id }` → new JWT + `businesses[]` for the chosen tenant |
 | POST | `/forgot-password` | No | `{ email }` → `{ ok }` (+ `reset_token` in non-prod) |
 | POST | `/reset-password` | No | `{ token, password }` → `{ ok }` |
 | POST | `/change-password` | Bearer | `{ current_password, new_password }` → `{ ok }` |
 
 Post-login routing: `scope === "platform"` → `/platform`; `scope === "business"` → `/app`.
+
+**Multi-negocio (gerente):** un usuario puede tener varias membresías. El JWT fija un `business_id` activo; todas las rutas `/business/*` usan ese tenant. El panel muestra un selector y llama `POST /auth/switch-business` para cambiar contexto.
 
 ## Public — `/api/v1/public`
 
@@ -50,9 +53,9 @@ Appointments: list/create + cancel / reschedule / complete / no-show.
 | Area | Notes |
 |------|-------|
 | Dashboard | Activos/suspendidos, altas 7d, citas por estado, serie diaria, tops, `managers_access_locked` |
-| Businesses | Create may include `manager_document`; detail includes manager + suspension fields |
-| Status | `PATCH .../status` `{ status, reason? }` — baja en cascada (`ACCESS_DISABLED` a gerentes) |
-| Managers | `POST /managers` (sin membresía); `POST .../manager` con `document` \| `user_id` \| create+assign |
+| Businesses | Create may include `manager_document`; detail includes `managers[]` (+ deprecated `manager` = first) and suspension fields |
+| Status | `PATCH .../status` `{ status, reason? }` — cierra vitrina; `ACCESS_DISABLED` solo si era la única membresía del gerente |
+| Managers | `POST /managers` (sin membresía); `POST .../manager` con `document` \| `user_id` \| create+assign (N:N: un gerente puede estar en varios negocios) |
 | Ops | `GET /log-viewer`, `GET /health` |
 
 ## Error codes to map in UI

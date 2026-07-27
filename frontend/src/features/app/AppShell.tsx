@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { getProfile } from '../../shared/api/business'
+import { me } from '../auth/api'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { ShellFrame } from '../../shared/ui'
 import { BusinessNotificationBell } from '../notifications/NotificationBell'
+import { BusinessSwitcher } from './BusinessSwitcher'
 
 const appLinks = [
   { to: '/app', label: 'Dashboard', end: true, section: 'Operación' },
@@ -15,35 +16,55 @@ const appLinks = [
 ]
 
 export function AppShell() {
-  const { session, logout } = useAuth()
+  const { session, patchSession, logout } = useAuth()
   const { pathname } = useLocation()
   const onAgenda = pathname.startsWith('/app/appointments')
-  const [businessName, setBusinessName] = useState<string | undefined>()
+  const businesses = session?.businesses ?? []
+  const activeId = session?.business_id
+  const activeName =
+    businesses.find((b) => b.id === activeId)?.name ??
+    businesses[0]?.name
 
+  // Refresh memberships for sessions created before multi-business support.
   useEffect(() => {
+    if (session?.scope !== 'business') return
     let cancelled = false
-    void getProfile()
-      .then((profile) => {
-        if (!cancelled && profile.name) setBusinessName(profile.name)
+    void me()
+      .then((data) => {
+        if (cancelled) return
+        patchSession({
+          business_id: data.business_id ?? session.business_id,
+          email: data.email || session.email,
+          businesses: data.businesses ?? session.businesses,
+        })
       })
       .catch(() => {
-        /* header title is optional */
+        /* optional bootstrap */
       })
     return () => {
       cancelled = true
     }
-  }, [])
+    // Only on mount / token change
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: refresh when access token changes
+  }, [session?.access_token])
 
   return (
     <ShellFrame
       email={session?.email}
       links={appLinks}
       profileTo="/app/profile"
-      headerTitle={businessName}
+      headerTitle={
+        businesses.length > 0 ? (
+          <BusinessSwitcher businesses={businesses} activeBusinessId={activeId} />
+        ) : (
+          activeName
+        )
+      }
+      contentKey={activeId}
       primaryAction={
         onAgenda ? undefined : { to: '/app/appointments?new=1', label: 'Nueva cita' }
       }
-      headerActions={<BusinessNotificationBell />}
+      headerActions={<BusinessNotificationBell key={activeId ?? 'none'} />}
       onLogout={logout}
     />
   )

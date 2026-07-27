@@ -14,17 +14,22 @@ import {
   saveSession,
   type Session,
 } from '../../shared/auth/session'
-import type { AuthScope } from '../../shared/api/types'
+import type { AuthScope, SessionBusiness } from '../../shared/api/types'
+
+export type AuthSessionInput = {
+  access_token: string
+  scope: AuthScope
+  business_id?: string
+  email?: string
+  businesses?: SessionBusiness[]
+}
 
 interface AuthContextValue {
   session: Session | null
   isAuthenticated: boolean
-  setSessionFromAuth: (input: {
-    access_token: string
-    scope: AuthScope
-    business_id?: string
-    email?: string
-  }) => void
+  setSessionFromAuth: (input: AuthSessionInput) => void
+  /** Patch metadata without replacing the token (e.g. refresh businesses from /me). */
+  patchSession: (patch: Partial<Pick<Session, 'business_id' | 'email' | 'businesses'>>) => void
   logout: () => void
 }
 
@@ -36,21 +41,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Keep React state in sync when api client clears storage on 401
   useEffect(() => onSessionCleared(() => setSession(null)), [])
 
-  const setSessionFromAuth = useCallback(
-    (input: {
-      access_token: string
-      scope: AuthScope
-      business_id?: string
-      email?: string
-    }) => {
-      const next: Session = {
-        access_token: input.access_token,
-        scope: input.scope,
-        business_id: input.business_id,
-        email: input.email,
-      }
-      saveSession(next)
-      setSession(next)
+  const setSessionFromAuth = useCallback((input: AuthSessionInput) => {
+    const next: Session = {
+      access_token: input.access_token,
+      scope: input.scope,
+      business_id: input.business_id,
+      email: input.email,
+      businesses: input.businesses,
+    }
+    saveSession(next)
+    setSession(next)
+  }, [])
+
+  const patchSession = useCallback(
+    (patch: Partial<Pick<Session, 'business_id' | 'email' | 'businesses'>>) => {
+      setSession((prev) => {
+        if (!prev) return prev
+        const next: Session = { ...prev, ...patch }
+        saveSession(next)
+        return next
+      })
     },
     [],
   )
@@ -64,9 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       isAuthenticated: Boolean(session?.access_token),
       setSessionFromAuth,
+      patchSession,
       logout,
     }),
-    [session, setSessionFromAuth, logout],
+    [session, setSessionFromAuth, patchSession, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
