@@ -31,7 +31,7 @@ export function BusinessSwitcher({
     return (
       <p
         className={cn(
-          'truncate text-sm font-semibold text-brand-800 sm:text-base',
+          'truncate text-sm font-semibold text-white sm:text-base',
           className,
         )}
         title={active.name}
@@ -68,7 +68,7 @@ export function BusinessSwitcher({
     <label className={cn('block min-w-0', className)}>
       <span className="sr-only">Negocio activo</span>
       <select
-        className="max-w-full truncate rounded-lg border border-brand-200/80 bg-white/80 px-2.5 py-1.5 text-center text-sm font-semibold text-brand-800 shadow-sm backdrop-blur-md transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-60 sm:text-base"
+        className="max-w-full truncate rounded-lg border border-white/40 bg-white/95 px-2.5 py-1.5 text-center text-sm font-semibold text-brand-800 shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60 sm:text-base"
         value={activeBusinessId ?? active.id}
         disabled={switching}
         onChange={(e) => void onChange(e)}

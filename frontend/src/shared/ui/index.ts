@@ -41,13 +41,16 @@ export { UserMenu } from './organisms/UserMenu'
 // Templates
 export { AuthLayout, PublicLayout, ShellFrame } from './templates/ShellLayouts'
 export { MarketingShell } from './templates/MarketingShell'
+export { BrandAtmosphere } from './templates/BrandAtmosphere'
 
 export {
   glassPanelClass,
   glassHeaderClass,
   glassNavClass,
+  glassFooterClass,
   glassPopoverClass,
   glassCardAuthClass,
+  chromeOnBrandBtnClass,
 } from './lib/glass'
 
 export type { ShellLink } from './templates/ShellLayouts'

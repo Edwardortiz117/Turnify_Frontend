@@ -351,7 +351,7 @@ export const AppointmentsPage = () => {
             {pendingRequests.map((req) => (
               <li
                 key={req.id}
-                className="flex flex-col gap-2 rounded-lg border border-border/80 bg-white/50 p-3 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2 rounded-lg border border-border/80 bg-card/80 p-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-ink">

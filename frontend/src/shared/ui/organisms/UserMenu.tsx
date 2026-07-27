@@ -21,11 +21,14 @@ export function UserMenu({
   email,
   profileTo,
   extraLinks,
+  tone = 'default',
   onLogout,
 }: {
   email?: string
   profileTo?: string
   extraLinks?: UserMenuLink[]
+  /** `onBrand` for turquoise header chrome. */
+  tone?: 'default' | 'onBrand'
   onLogout: () => void
 }) {
   const menuId = useId()
@@ -52,12 +55,17 @@ export function UserMenu({
     }
   }, [open])
 
+  const btnClass =
+    tone === 'onBrand'
+      ? 'inline-flex size-11 items-center justify-center rounded-xl border border-white/35 bg-white/15 text-white shadow-sm backdrop-blur-sm transition duration-200 hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
+      : 'inline-flex size-11 items-center justify-center rounded-xl border border-border bg-white text-ink shadow-sm transition duration-200 hover:border-brand-200 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
+
   return (
     <div className="relative" ref={rootRef}>
       <button
         ref={buttonRef}
         type="button"
-        className="inline-flex size-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 text-ink shadow-sm backdrop-blur-md transition duration-200 hover:border-brand-200 hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        className={btnClass}
         aria-label="Menú de usuario"
         aria-expanded={open}
         aria-controls={menuId}

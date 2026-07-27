@@ -4,9 +4,11 @@ import { cn } from '../../lib/cn'
 export function Badge({
   children,
   tone = 'neutral',
+  className,
 }: {
   children: ReactNode
   tone?: 'neutral' | 'success' | 'warning' | 'danger' | 'brand'
+  className?: string
 }) {
   const map = {
     neutral: 'bg-slate-100 text-slate-700 ring-slate-200/80',
@@ -20,6 +22,7 @@ export function Badge({
       className={cn(
         'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1',
         map[tone],
+        className,
       )}
     >
       {children}

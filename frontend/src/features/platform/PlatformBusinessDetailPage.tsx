@@ -189,7 +189,7 @@ export function PlatformBusinessDetailPage() {
         ) : (
           <div className="space-y-2">
             <p className="text-sm font-medium text-ink">Gerentes ({managers.length})</p>
-            <ul className="divide-y divide-border/70 rounded-lg border border-border/80 bg-white/50">
+            <ul className="divide-y divide-border/70 rounded-lg border border-border/80 bg-card/80">
               {managers.map((m) => (
                 <li key={m.id} className="px-3 py-2.5 text-sm">
                   <p className="font-medium text-ink">{m.email}</p>

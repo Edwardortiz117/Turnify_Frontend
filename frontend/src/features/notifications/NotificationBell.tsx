@@ -23,7 +23,13 @@ function BellIcon() {
   )
 }
 
-function NotificationBellPanel({ source }: { source: NotificationSource }) {
+function NotificationBellPanel({
+  source,
+  tone = 'default',
+}: {
+  source: NotificationSource
+  tone?: 'default' | 'onBrand'
+}) {
   const panelId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -49,12 +55,17 @@ function NotificationBellPanel({ source }: { source: NotificationSource }) {
     }
   }, [open])
 
+  const btnClass =
+    tone === 'onBrand'
+      ? 'relative inline-flex size-11 items-center justify-center rounded-xl border border-white/35 bg-white/15 text-white shadow-sm backdrop-blur-sm transition duration-200 hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
+      : 'relative inline-flex size-11 items-center justify-center rounded-xl border border-border bg-white text-ink shadow-sm transition duration-200 hover:border-brand-200 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
+
   return (
     <div className="relative" ref={rootRef}>
       <button
         ref={buttonRef}
         type="button"
-        className="relative inline-flex size-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 text-ink shadow-sm backdrop-blur-md transition duration-200 hover:border-brand-200 hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        className={btnClass}
         aria-label={
           unreadCount > 0
             ? `Notificaciones, ${unreadCount} sin leer`
@@ -136,9 +147,9 @@ function NotificationBellPanel({ source }: { source: NotificationSource }) {
 }
 
 export function BusinessNotificationBell() {
-  return <NotificationBellPanel source={useBusinessNotifications()} />
+  return <NotificationBellPanel source={useBusinessNotifications()} tone="onBrand" />
 }
 
 export function PlatformNotificationBell() {
-  return <NotificationBellPanel source={usePlatformNotifications()} />
+  return <NotificationBellPanel source={usePlatformNotifications()} tone="onBrand" />
 }

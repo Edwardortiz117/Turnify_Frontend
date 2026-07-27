@@ -2,12 +2,16 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { BrandLogo } from '../atoms/BrandLogo'
 import { Badge } from '../atoms/Badge'
-import { Button } from '../atoms/Button'
 import { SiteFooter } from '../organisms/SiteFooter'
 import { UserMenu, type UserMenuLink } from '../organisms/UserMenu'
 import { cn } from '../../lib/cn'
 import { MarketingShell } from './MarketingShell'
-import { glassHeaderClass, glassNavClass } from '../lib/glass'
+import { BrandAtmosphere } from './BrandAtmosphere'
+import {
+  chromeOnBrandBtnClass,
+  glassHeaderClass,
+  glassNavClass,
+} from '../lib/glass'
 
 function MenuIcon({ open }: { open: boolean }) {
   return (
@@ -72,7 +76,6 @@ export function ShellFrame({
     setNavOpen(false)
   }, [location.pathname])
 
-  // Close mobile drawer when viewport crosses to desktop (avoids stuck body overflow)
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)')
     const onChange = () => {
@@ -117,88 +120,29 @@ export function ShellFrame({
 
   return (
     <div className="app-shell relative isolate min-h-dvh lg:p-2.5">
-      <div className="app-shell-wallpaper" aria-hidden="true">
-        <img
-          src="/fondo_sistem-agenden.webp"
-          alt=""
-          className="app-shell-wallpaper__media"
-          width={1920}
-          height={1080}
-          decoding="async"
-          fetchPriority="low"
-        />
-      </div>
+      <BrandAtmosphere />
 
       <div
         className={cn(
-          'relative z-10 min-h-dvh lg:grid lg:min-h-[calc(100dvh-1.25rem)] lg:grid-cols-[240px_1fr]',
-          'lg:rounded-2xl lg:border lg:border-white/45 lg:shadow-lg lg:shadow-slate-900/10',
+          'relative z-10 flex min-h-dvh flex-col overflow-hidden',
+          'lg:min-h-[calc(100dvh-1.25rem)] lg:rounded-2xl lg:border lg:border-slate-200/90 lg:bg-white/40 lg:shadow-lg lg:shadow-slate-900/10 lg:backdrop-blur-[2px]',
         )}
       >
-      <a href="#main-content" className="skip-link">
-        Saltar al contenido
-      </a>
+        <a href="#main-content" className="skip-link">
+          Saltar al contenido
+        </a>
 
-      {navOpen ? (
-        <button
-          type="button"
-          className="fixed inset-0 z-40 bg-ink/35 lg:hidden"
-          aria-label="Cerrar menú"
-          onClick={() => setNavOpen(false)}
-        />
-      ) : null}
-
-      <aside
-        id="app-nav"
-        className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-[min(100%,16.5rem)] flex-col text-ink transition-transform duration-[var(--duration-ui)] ease-[var(--ease-drawer)] lg:static lg:translate-x-0',
-          glassNavClass,
-          navOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-        )}
-      >
-        <div className="border-b border-border px-3 py-4">
-          <div className="flex flex-col items-center justify-center gap-2">
-            <BrandLogo size="lg" className="home-logo-pop home-logo-float mx-auto" />
-            {badge ? <Badge tone="brand">{badge}</Badge> : null}
-          </div>
-          {subtitle ? (
-            <p className="mt-2 text-center text-xs text-muted">{subtitle}</p>
-          ) : null}
-        </div>
-        <nav className="flex flex-1 flex-col gap-3 overflow-y-auto px-2 py-3" aria-label="Principal">
-          {sections.map((group, i) => (
-            <div key={group.name ?? `g-${i}`} className="flex flex-col gap-0.5">
-              {group.name ? (
-                <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted">
-                  {group.name}
-                </p>
-              ) : null}
-              {group.items.map((l) => (
-                <NavLink
-                  key={l.to}
-                  to={l.to}
-                  end={l.end}
-                  className={({ isActive }) => linkClass(isActive)}
-                >
-                  {l.label}
-                </NavLink>
-              ))}
-            </div>
-          ))}
-        </nav>
-      </aside>
-
-      <div className="flex min-h-dvh min-w-0 flex-col lg:min-h-0">
+        {/* Brand color only in the header (feedback layout). */}
         <header
           className={cn(
-            'sticky top-0 z-30 grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 lg:px-8',
+            'sticky top-0 z-30 grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 lg:px-8',
             glassHeaderClass,
           )}
         >
           <div className="flex min-w-0 items-center gap-2 justify-self-start">
             <button
               type="button"
-              className="inline-flex size-11 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-ink backdrop-blur-md transition-colors hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 lg:hidden"
+              className={cn(chromeOnBrandBtnClass, 'lg:hidden')}
               aria-expanded={navOpen}
               aria-controls="app-nav"
               aria-label={navOpen ? 'Cerrar menú' : 'Abrir menú'}
@@ -207,8 +151,12 @@ export function ShellFrame({
               <MenuIcon open={navOpen} />
             </button>
             <div className="flex min-w-0 items-center gap-2 lg:hidden">
-              <BrandLogo size="sm" />
-              {badge ? <Badge tone="brand">{badge}</Badge> : null}
+              <BrandLogo size="sm" className="brightness-0 invert" />
+              {badge ? (
+                <Badge tone="brand" className="border-white/30 bg-white/20 text-white">
+                  {badge}
+                </Badge>
+              ) : null}
             </div>
           </div>
 
@@ -216,13 +164,13 @@ export function ShellFrame({
             {headerTitle ? (
               typeof headerTitle === 'string' ? (
                 <p
-                  className="truncate text-sm font-semibold text-brand-800 transition-colors duration-200 sm:text-base"
+                  className="truncate text-sm font-semibold text-white sm:text-base"
                   title={headerTitle}
                 >
                   {headerTitle}
                 </p>
               ) : (
-                headerTitle
+                <div className="shell-header-on-brand">{headerTitle}</div>
               )
             ) : (
               <span className="sr-only">Turnify</span>
@@ -231,8 +179,11 @@ export function ShellFrame({
 
           <div className="flex shrink-0 items-center justify-end gap-2 justify-self-end">
             {primaryAction ? (
-              <Link to={primaryAction.to} className="hidden sm:inline-flex">
-                <Button size="sm">{primaryAction.label}</Button>
+              <Link
+                to={primaryAction.to}
+                className="hidden min-h-9 items-center justify-center rounded-lg bg-white px-3.5 text-xs font-bold tracking-wide text-brand-800 shadow-md shadow-brand-900/25 ring-2 ring-white/70 transition hover:bg-brand-50 hover:text-brand-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.97] motion-reduce:active:scale-100 sm:inline-flex"
+              >
+                {primaryAction.label}
               </Link>
             ) : null}
             {headerActions}
@@ -240,18 +191,78 @@ export function ShellFrame({
               email={email}
               profileTo={profileTo}
               extraLinks={menuExtraLinks}
+              tone="onBrand"
               onLogout={onLogout}
             />
           </div>
         </header>
 
-        <main id="main-content" className="min-w-0 flex-1 px-4 py-4 pb-5 sm:px-6 sm:py-5 lg:px-8">
-          <div key={contentKey} className="surface-enter mx-auto w-full max-w-7xl">
-            <Outlet />
+        <div className="relative flex min-h-0 flex-1">
+          {navOpen ? (
+            <button
+              type="button"
+              className="fixed inset-0 z-40 bg-ink/35 lg:hidden"
+              aria-label="Cerrar menú"
+              onClick={() => setNavOpen(false)}
+            />
+          ) : null}
+
+          <aside
+            id="app-nav"
+            className={cn(
+              'fixed inset-y-0 left-0 z-50 flex w-[min(100%,16.5rem)] flex-col text-ink transition-transform duration-[var(--duration-ui)] ease-[var(--ease-drawer)] lg:static lg:z-0 lg:translate-x-0',
+              'top-[3.75rem] lg:top-auto',
+              glassNavClass,
+              navOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+            )}
+          >
+            <div className="border-b border-border px-3 py-4">
+              <div className="flex flex-col items-center justify-center gap-2">
+                <BrandLogo size="lg" className="home-logo-pop home-logo-float mx-auto" />
+                {badge ? <Badge tone="brand">{badge}</Badge> : null}
+              </div>
+              {subtitle ? (
+                <p className="mt-2 text-center text-xs text-muted">{subtitle}</p>
+              ) : null}
+            </div>
+            <nav className="flex flex-1 flex-col gap-3 overflow-y-auto px-2 py-3" aria-label="Principal">
+              {sections.map((group, i) => (
+                <div key={group.name ?? `g-${i}`} className="flex flex-col gap-0.5">
+                  {group.name ? (
+                    <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted">
+                      {group.name}
+                    </p>
+                  ) : null}
+                  {group.items.map((l) => (
+                    <NavLink
+                      key={l.to}
+                      to={l.to}
+                      end={l.end}
+                      className={({ isActive }) => linkClass(isActive)}
+                    >
+                      {l.label}
+                    </NavLink>
+                  ))}
+                </div>
+              ))}
+            </nav>
+          </aside>
+
+          <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+            <BrandAtmosphere mode="fill" />
+            <main
+              id="main-content"
+              className="relative z-10 min-w-0 flex-1 px-4 py-4 pb-5 sm:px-6 sm:py-5 lg:px-8"
+            >
+              <div key={contentKey} className="surface-enter mx-auto w-full max-w-7xl">
+                <Outlet />
+              </div>
+            </main>
+            <div className="relative z-10">
+              <SiteFooter variant="compact" surface="glass" />
+            </div>
           </div>
-        </main>
-        <SiteFooter variant="compact" surface="glass" />
-      </div>
+        </div>
       </div>
     </div>
   )
@@ -281,17 +292,7 @@ export function PublicLayout({
 }) {
   return (
     <div className="relative isolate flex min-h-dvh flex-col">
-      <div className="app-shell-wallpaper" aria-hidden="true">
-        <img
-          src="/fondo_sistem-agenden.webp"
-          alt=""
-          className="app-shell-wallpaper__media"
-          width={1920}
-          height={1080}
-          decoding="async"
-          fetchPriority="low"
-        />
-      </div>
+      <BrandAtmosphere />
       <a href="#main-content" className="skip-link">
         Saltar al contenido
       </a>
@@ -306,7 +307,7 @@ export function PublicLayout({
         {children}
       </div>
       <div className="relative z-10">
-        <SiteFooter variant="compact" surface="glass" />
+        <SiteFooter variant="compact" surface="solid" />
       </div>
     </div>
   )
