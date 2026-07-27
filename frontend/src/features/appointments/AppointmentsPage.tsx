@@ -9,17 +9,16 @@ import {
   getProfile,
   listAppointments,
   listProfessionals,
+  listRescheduleRequests,
   listServices,
   noShowAppointment,
+  patchRescheduleRequest,
+  type RescheduleRequestDto,
 } from '../../shared/api/business'
 import { RescheduleModal } from './RescheduleModal'
 import type { Appointment, Professional, Service } from '../../shared/api/types'
 import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { endOfDayIso, formatInTimeZone, datetimeLocalToUtcIso, startOfDayIso, toDateInputValue } from '../../shared/datetime'
-import {
-  discardRescheduleRequest,
-  findRescheduleRequestByAppointmentId,
-} from '../../shared/storage/rescheduleRequestStorage'
 import { Alert, AppointmentStatusBadge, Button, ConfirmDialog, Input, Label, Select, Card, EmptyState, PageHeader, PageLoading } from '../../shared/ui'
 
 export const AppointmentsPage = () => {
@@ -37,6 +36,7 @@ export const AppointmentsPage = () => {
   const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null)
   const [rescheduleHint, setRescheduleHint] = useState<string | null>(null)
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
+  const [pendingRequests, setPendingRequests] = useState<RescheduleRequestDto[]>([])
   const [focusId, setFocusId] = useState<string | null>(null)
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
@@ -95,9 +95,15 @@ export const AppointmentsPage = () => {
           if (appt.status !== 'confirmed') {
             setError('Esa cita ya no está confirmada; no se puede reprogramar.')
           } else {
-            const req = findRescheduleRequestByAppointmentId(slug, rescheduleId)
-            setRescheduleHint(req?.message ?? null)
-            setPendingRequestId(req?.id ?? null)
+            try {
+              const pending = await listRescheduleRequests({ status: 'pending', limit: 50 })
+              const req = (pending.items ?? []).find((r) => r.appointment_id === rescheduleId)
+              setRescheduleHint(req?.message ?? null)
+              setPendingRequestId(req?.id ?? null)
+            } catch {
+              setRescheduleHint(null)
+              setPendingRequestId(null)
+            }
             setRescheduleTarget(appt)
           }
         }
@@ -232,16 +238,63 @@ export const AppointmentsPage = () => {
     }
   }
 
+  const refreshPendingRequests = async () => {
+    try {
+      const res = await listRescheduleRequests({ status: 'pending', limit: 50 })
+      setPendingRequests(res.items ?? [])
+    } catch {
+      setPendingRequests([])
+    }
+  }
+
+  useEffect(() => {
+    void refreshPendingRequests()
+  }, [businessSlug])
+
   const handleOpenReschedule = (appointment: Appointment) => {
     setError(null)
     if (!businessSlug) {
       setError('No se pudo cargar el negocio. Recarga e intenta de nuevo.')
       return
     }
-    const req = findRescheduleRequestByAppointmentId(businessSlug, appointment.id)
+    const req = pendingRequests.find((r) => r.appointment_id === appointment.id)
     setRescheduleHint(req?.message ?? null)
     setPendingRequestId(req?.id ?? null)
     setRescheduleTarget(appointment)
+  }
+
+  const handleOpenPendingRequest = async (req: RescheduleRequestDto) => {
+    setError(null)
+    try {
+      const appt = await getAppointment(req.appointment_id)
+      const day = toDateInputValue(new Date(appt.starts_at), timezone)
+      setFrom(day)
+      setTo(day)
+      setFocusId(appt.id)
+      if (appt.status !== 'confirmed') {
+        setError('Esa cita ya no está confirmada; no se puede reprogramar.')
+        return
+      }
+      setRescheduleHint(req.message)
+      setPendingRequestId(req.id)
+      setRescheduleTarget(appt)
+      void patchRescheduleRequest(req.id, 'seen').catch(() => undefined)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    }
+  }
+
+  const handleDismissPending = async (req: RescheduleRequestDto) => {
+    try {
+      await patchRescheduleRequest(req.id, 'dismissed')
+      await refreshPendingRequests()
+      if (pendingRequestId === req.id) {
+        setPendingRequestId(null)
+        setRescheduleHint(null)
+      }
+    } catch (err) {
+      setError(getErrorMessage(err))
+    }
   }
 
   const handleCloseReschedule = () => {
@@ -251,9 +304,8 @@ export const AppointmentsPage = () => {
   }
 
   const handleRescheduleDone = () => {
-    if (pendingRequestId && businessSlug) {
-      discardRescheduleRequest(businessSlug, pendingRequestId)
-    }
+    // Backend marks pending request as handled on successful reschedule.
+    void refreshPendingRequests()
     handleCloseReschedule()
     void refresh()
   }
@@ -289,6 +341,46 @@ export const AppointmentsPage = () => {
           />
         </div>
       </div>
+      {pendingRequests.length > 0 ? (
+        <Card className="mb-4" interactive>
+          <h2 className="font-semibold text-ink">Solicitudes de reprogramación</h2>
+          <p className="mt-1 text-xs text-pretty text-muted">
+            Pendientes enviadas por clientes (servidor).
+          </p>
+          <ul className="mt-3 space-y-2">
+            {pendingRequests.map((req) => (
+              <li
+                key={req.id}
+                className="flex flex-col gap-2 rounded-lg border border-border/80 bg-white/50 p-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-ink">
+                    {req.client_name?.trim() || req.phone}
+                  </p>
+                  <p className="mt-0.5 text-xs text-pretty text-muted">{req.message}</p>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => void handleOpenPendingRequest(req)}
+                  >
+                    Reprogramar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => void handleDismissPending(req)}
+                  >
+                    Descartar
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
       {error ? (
         <div className="mb-3">
           <Alert>{error}</Alert>

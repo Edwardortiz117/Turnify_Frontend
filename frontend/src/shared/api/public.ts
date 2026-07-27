@@ -61,6 +61,24 @@ export function cancelPublicAppointment(appointmentId: string, phone: string) {
   })
 }
 
+export function createPublicRescheduleRequest(
+  appointmentId: string,
+  body: { phone: string; message: string },
+) {
+  return apiRequest<{
+    id: string
+    appointment_id: string
+    phone: string
+    client_name?: string | null
+    message: string
+    status: string
+    created_at: string
+  }>(`/public/appointments/${appointmentId}/reschedule-requests`, {
+    method: 'POST',
+    body,
+  })
+}
+
 export function lookupPublicAppointments(slug: string, phone: string) {
   return apiRequest<Paginated<Appointment>>(
     `/public/businesses/${encodeURIComponent(slug)}/appointments/lookup`,

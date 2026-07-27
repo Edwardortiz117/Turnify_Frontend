@@ -1,5 +1,6 @@
-import { useState, type ChangeEvent, type SubmitEvent } from 'react'
-import { addRescheduleRequest } from '../../shared/storage/rescheduleRequestStorage'
+import { useEffect, useState, type ChangeEvent, type SubmitEvent } from 'react'
+import { createPublicRescheduleRequest } from '../../shared/api/public'
+import { getErrorMessage } from '../../shared/api/getErrorMessage'
 import { Alert, Button, Input, Label, Modal } from '../../shared/ui'
 
 type PublicRescheduleRequestModalProps = {
@@ -8,38 +9,40 @@ type PublicRescheduleRequestModalProps = {
   appointmentId: string
   defaultPhone?: string
   clientName?: string
+  businessName?: string
   onClose: () => void
 }
 
 export const PublicRescheduleRequestModal = ({
   open,
-  slug,
   appointmentId,
   defaultPhone = '',
-  clientName,
   onClose,
 }: PublicRescheduleRequestModalProps) => {
   const [phone, setPhone] = useState(defaultPhone)
   const [message, setMessage] = useState('')
   const [done, setDone] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPhone(e.target.value)
-  }
-
-  const handleMessageChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(e.target.value)
-  }
+  useEffect(() => {
+    if (!open) return
+    setPhone(defaultPhone)
+    setMessage('')
+    setDone(false)
+    setLoading(false)
+    setError(null)
+  }, [open, defaultPhone])
 
   const handleClose = () => {
     setDone(false)
     setError(null)
     setMessage('')
+    setLoading(false)
     onClose()
   }
 
-  const handleSubmit = (e: SubmitEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     setError(null)
     const trimmed = message.trim()
@@ -51,14 +54,18 @@ export const PublicRescheduleRequestModal = ({
       setError('Confirma el teléfono de la reserva.')
       return
     }
-    addRescheduleRequest({
-      slug,
-      appointmentId,
-      phone: phone.trim(),
-      clientName,
-      message: trimmed,
-    })
-    setDone(true)
+    setLoading(true)
+    try {
+      await createPublicRescheduleRequest(appointmentId, {
+        phone: phone.trim(),
+        message: trimmed,
+      })
+      setDone(true)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -66,7 +73,7 @@ export const PublicRescheduleRequestModal = ({
       {done ? (
         <div className="space-y-4 text-center sm:text-left">
           <Alert tone="success">
-            Tu mensaje fue enviado al negocio. Te contactarán para confirmar el nuevo horario.
+            Tu solicitud fue enviada al negocio. Te contactarán para confirmar el nuevo horario.
           </Alert>
           <p className="text-sm text-pretty text-muted">
             No puedes elegir el horario desde aquí: el equipo lo reprograma por ti.
@@ -76,7 +83,7 @@ export const PublicRescheduleRequestModal = ({
           </Button>
         </div>
       ) : (
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={(e) => void handleSubmit(e)}>
           <p className="text-sm text-pretty text-muted">
             Cuéntale al negocio cuándo podrías venir. Ellos te confirmarán la nueva cita.
           </p>
@@ -87,7 +94,7 @@ export const PublicRescheduleRequestModal = ({
               id="reschedule-phone"
               required
               value={phone}
-              onChange={handlePhoneChange}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
               autoComplete="tel"
             />
           </div>
@@ -98,7 +105,7 @@ export const PublicRescheduleRequestModal = ({
               required
               rows={4}
               value={message}
-              onChange={handleMessageChange}
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
               placeholder="Ej: ¿Pueden moverme al viernes por la mañana?"
               className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-ink shadow-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-200"
             />
@@ -109,11 +116,12 @@ export const PublicRescheduleRequestModal = ({
               variant="secondary"
               className="w-full sm:w-auto"
               onClick={handleClose}
+              disabled={loading}
             >
               Cancelar
             </Button>
-            <Button type="submit" className="w-full sm:w-auto">
-              Enviar solicitud
+            <Button type="submit" className="w-full sm:w-auto" disabled={loading}>
+              {loading ? 'Enviando…' : 'Enviar solicitud'}
             </Button>
           </div>
         </form>

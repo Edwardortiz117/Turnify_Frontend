@@ -248,3 +248,87 @@ export function unblockClient(clientId: string) {
     auth: true,
   })
 }
+
+export type BusinessNotificationDto = {
+  id: string
+  type: string
+  title: string
+  body: string
+  href?: string | null
+  status: 'unread' | 'read' | 'dismissed'
+  appointment_id?: string | null
+  reschedule_request_id?: string | null
+  created_at: string
+}
+
+export type RescheduleRequestDto = {
+  id: string
+  appointment_id: string
+  phone: string
+  client_name?: string | null
+  message: string
+  status: 'pending' | 'seen' | 'handled' | 'dismissed'
+  created_at: string
+  resolved_at?: string | null
+}
+
+export function listBusinessNotifications(params?: {
+  status?: 'unread' | 'read' | 'dismissed'
+  limit?: number
+  offset?: number
+}) {
+  const q = new URLSearchParams()
+  if (params?.status) q.set('status', params.status)
+  if (params?.limit != null) q.set('limit', String(params.limit))
+  if (params?.offset != null) q.set('offset', String(params.offset))
+  const qs = q.toString()
+  return apiRequest<Paginated<BusinessNotificationDto>>(
+    `/business/notifications${qs ? `?${qs}` : ''}`,
+    { auth: true },
+  )
+}
+
+export function patchBusinessNotification(
+  notificationId: string,
+  status: 'unread' | 'read' | 'dismissed',
+) {
+  return apiRequest<BusinessNotificationDto>(`/business/notifications/${notificationId}`, {
+    method: 'PATCH',
+    auth: true,
+    body: { status },
+  })
+}
+
+export function markAllBusinessNotificationsRead() {
+  return apiRequest<{ ok: true }>('/business/notifications/mark-all-read', {
+    method: 'POST',
+    auth: true,
+  })
+}
+
+export function listRescheduleRequests(params?: {
+  status?: 'pending' | 'seen' | 'handled' | 'dismissed'
+  limit?: number
+  offset?: number
+}) {
+  const q = new URLSearchParams()
+  if (params?.status) q.set('status', params.status)
+  if (params?.limit != null) q.set('limit', String(params.limit))
+  if (params?.offset != null) q.set('offset', String(params.offset))
+  const qs = q.toString()
+  return apiRequest<Paginated<RescheduleRequestDto>>(
+    `/business/reschedule-requests${qs ? `?${qs}` : ''}`,
+    { auth: true },
+  )
+}
+
+export function patchRescheduleRequest(
+  requestId: string,
+  status: 'pending' | 'seen' | 'handled' | 'dismissed',
+) {
+  return apiRequest<RescheduleRequestDto>(`/business/reschedule-requests/${requestId}`, {
+    method: 'PATCH',
+    auth: true,
+    body: { status },
+  })
+}

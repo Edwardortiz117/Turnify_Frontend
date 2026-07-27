@@ -10,6 +10,6 @@ export type NotificationSource = {
   notifications: AppNotification[]
   loading: boolean
   unreadCount: number
-  markAllRead: () => void
-  dismissOne: (id: string) => void
+  markAllRead: () => void | Promise<void>
+  dismissOne: (id: string) => void | Promise<void>
 }

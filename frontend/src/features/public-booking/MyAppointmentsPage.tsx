@@ -390,6 +390,7 @@ export function MyAppointmentsPage() {
           appointmentId={rescheduleTarget.id}
           defaultPhone={phone}
           clientName={rescheduleTarget.client?.name}
+          businessName={rescheduleTarget.business.name}
           onClose={() => setRescheduleTarget(null)}
         />
       ) : null}

@@ -1,21 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  getProfile,
   getWeeklySchedule,
   listAppointments,
+  listBusinessNotifications,
   listProfessionals,
+  markAllBusinessNotificationsRead,
+  patchBusinessNotification,
 } from '../../shared/api/business'
-import {
-  onRescheduleRequestsChanged,
-  readRescheduleRequests,
-} from '../../shared/storage/rescheduleRequestStorage'
 import { endOfDayIso, startOfDayIso, toDateInputValue } from '../../shared/datetime'
-import type { Appointment } from '../../shared/api/types'
 import { buildBusinessNotifications } from './buildBusinessNotifications'
-import { readDismissedIds, writeDismissedIds } from './dismissStorage'
 import type { AppNotification, NotificationSource } from './types'
 
-const POLL_MS = 45_000
+const POLL_MS = 30_000
 
 function shiftDateStr(dateStr: string, deltaDays: number): string {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -29,31 +25,21 @@ function shiftDateStr(dateStr: string, deltaDays: number): string {
 export function useBusinessNotifications(): NotificationSource {
   const [items, setItems] = useState<AppNotification[]>([])
   const [loading, setLoading] = useState(true)
-  const [dismissed, setDismissed] = useState<Set<string>>(() => readDismissedIds())
 
   const refresh = useCallback(async () => {
     const today = toDateInputValue()
     const fromDate = shiftDateStr(today, -7)
     const toDate = shiftDateStr(today, 45)
     try {
-      const [pros, appts, cancelledAppts, profile] = await Promise.all([
+      const [pros, appts, serverNotes] = await Promise.all([
         listProfessionals(),
         listAppointments({
           from: startOfDayIso(fromDate),
           to: endOfDayIso(toDate),
           limit: 200,
         }),
-        listAppointments({
-          from: startOfDayIso(fromDate),
-          to: endOfDayIso(toDate),
-          status: 'cancelled',
-          limit: 100,
-        }),
-        getProfile(),
+        listBusinessNotifications({ status: 'unread', limit: 50 }),
       ])
-      const byId = new Map<string, Appointment>()
-      for (const a of appts.items ?? []) byId.set(a.id, a)
-      for (const a of cancelledAppts.items ?? []) byId.set(a.id, a)
 
       const active = pros.filter((p) => p.status === 'active')
       const schedules = await Promise.all(
@@ -66,13 +52,26 @@ export function useBusinessNotifications(): NotificationSource {
           }
         }),
       )
+
+      const derived = buildBusinessNotifications({
+        appointments: appts.items ?? [],
+        professionals: active,
+        schedulesByProfessionalId: Object.fromEntries(schedules),
+        rescheduleRequests: [],
+      }).filter((n) => n.id.startsWith('expired:') || n.id.startsWith('full:'))
+
+      const fromServer: AppNotification[] = (serverNotes.items ?? []).map((n) => ({
+        id: `server:${n.id}`,
+        title: n.title,
+        body: n.body,
+        href: n.href || '/app/appointments',
+        createdAt: n.created_at,
+      }))
+
+      const byId = new Map<string, AppNotification>()
+      for (const n of [...fromServer, ...derived]) byId.set(n.id, n)
       setItems(
-        buildBusinessNotifications({
-          appointments: [...byId.values()],
-          professionals: active,
-          schedulesByProfessionalId: Object.fromEntries(schedules),
-          rescheduleRequests: readRescheduleRequests(profile.slug),
-        }),
+        [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
       )
     } catch {
       /* keep previous */
@@ -82,39 +81,49 @@ export function useBusinessNotifications(): NotificationSource {
   }, [])
 
   useEffect(() => {
-    void refresh()
-    const id = window.setInterval(() => void refresh(), POLL_MS)
+    let cancelled = false
+    void (async () => {
+      if (cancelled) return
+      await refresh()
+    })()
+    const id = window.setInterval(() => {
+      if (!cancelled) void refresh()
+    }, POLL_MS)
     const onVisible = () => {
-      if (document.visibilityState === 'visible') void refresh()
+      if (document.visibilityState === 'visible' && !cancelled) void refresh()
     }
     document.addEventListener('visibilitychange', onVisible)
     window.addEventListener('focus', onVisible)
-    const unsub = onRescheduleRequestsChanged(() => void refresh())
     return () => {
+      cancelled = true
       window.clearInterval(id)
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('focus', onVisible)
-      unsub()
     }
   }, [refresh])
 
-  const visible = useMemo(
-    () => items.filter((n) => !dismissed.has(n.id)),
-    [items, dismissed],
-  )
+  const visible = useMemo(() => items, [items])
 
-  function markAllRead() {
-    const next = new Set(dismissed)
-    for (const n of items) next.add(n.id)
-    setDismissed(next)
-    writeDismissedIds(next)
+  async function markAllRead() {
+    try {
+      await markAllBusinessNotificationsRead()
+    } catch {
+      /* ignore */
+    }
+    setItems((prev) => prev.filter((n) => !n.id.startsWith('server:')))
+    void refresh()
   }
 
-  function dismissOne(id: string) {
-    const next = new Set(dismissed)
-    next.add(id)
-    setDismissed(next)
-    writeDismissedIds(next)
+  async function dismissOne(id: string) {
+    if (id.startsWith('server:')) {
+      const serverId = id.slice('server:'.length)
+      try {
+        await patchBusinessNotification(serverId, 'dismissed')
+      } catch {
+        /* ignore */
+      }
+    }
+    setItems((prev) => prev.filter((n) => n.id !== id))
   }
 
   return {
