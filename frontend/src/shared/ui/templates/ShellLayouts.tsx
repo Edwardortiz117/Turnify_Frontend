@@ -111,7 +111,25 @@ export function ShellFrame({
   }, [])
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[240px_1fr]">
+    <div className="app-shell relative isolate min-h-dvh lg:p-2.5">
+      <div className="app-shell-wallpaper" aria-hidden="true">
+        <img
+          src="/fondo_sistem-agenden.webp"
+          alt=""
+          className="app-shell-wallpaper__media"
+          width={1920}
+          height={1080}
+          decoding="async"
+          fetchPriority="low"
+        />
+      </div>
+
+      <div
+        className={cn(
+          'relative z-10 min-h-dvh lg:grid lg:min-h-[calc(100dvh-1.25rem)] lg:grid-cols-[240px_1fr]',
+          'lg:rounded-2xl lg:border lg:border-white/45 lg:shadow-lg lg:shadow-slate-900/10',
+        )}
+      >
       <a href="#main-content" className="skip-link">
         Saltar al contenido
       </a>
@@ -165,13 +183,14 @@ export function ShellFrame({
         </nav>
       </aside>
 
-      <div className="flex min-h-dvh min-w-0 flex-col">
+      <div className="flex min-h-dvh min-w-0 flex-col lg:min-h-0">
         <header
           className={cn(
             'sticky top-0 z-30 grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 lg:px-8',
             glassHeaderClass,
           )}
-        >          <div className="flex min-w-0 items-center gap-2 justify-self-start">
+        >
+          <div className="flex min-w-0 items-center gap-2 justify-self-start">
             <button
               type="button"
               className="inline-flex size-11 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-ink backdrop-blur-md transition-colors hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 lg:hidden"
@@ -217,7 +236,8 @@ export function ShellFrame({
             <Outlet />
           </div>
         </main>
-        <SiteFooter variant="compact" />
+        <SiteFooter variant="compact" surface="glass" />
+      </div>
       </div>
     </div>
   )

@@ -64,10 +64,82 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/**
+ * App shell wallpaper (Gmail-style): responsive cover photo behind chrome,
+ * lightly blurred (~8%), with a soft veil so UI glass stays readable.
+ */
+.app-shell-wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.app-shell-wallpaper__media {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: translate(-50%, -50%) scale(1.05);
+  /* ~8% soft focus */
+  filter: blur(4px);
+  will-change: transform, filter;
+}
+
+/* Portrait / narrow: keep subject framed without letterboxing */
+@media (max-aspect-ratio: 3/4) {
+  .app-shell-wallpaper__media {
+    object-position: center 35%;
+    width: auto;
+    height: 100%;
+    min-width: 100%;
+  }
+}
+
+@media (min-aspect-ratio: 21/9) {
+  .app-shell-wallpaper__media {
+    object-position: center center;
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+  }
+}
+
+.app-shell-wallpaper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      165deg,
+      rgb(244 246 248 / 0.74) 0%,
+      rgb(244 246 248 / 0.58) 42%,
+      rgb(241 245 249 / 0.68) 100%
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell-wallpaper__media {
+    filter: blur(2.5px);
+    transform: translate(-50%, -50%) scale(1.02);
+    will-change: auto;
+  }
+}
+
 /* Coherent glass system — panels, chrome, popovers */
 .glass-panel,
 .glass-header,
 .glass-nav,
+.glass-footer,
 .glass-popover {
   -webkit-backdrop-filter: blur(18px) saturate(1.35);
   backdrop-filter: blur(18px) saturate(1.35);
@@ -77,6 +149,7 @@ body {
   .glass-panel,
   .glass-header,
   .glass-nav,
+  .glass-footer,
   .glass-popover {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -85,6 +158,10 @@ body {
 
   body {
     background-image: none;
+  }
+
+  .app-shell-wallpaper {
+    display: none;
   }
 }
 
@@ -115,7 +192,8 @@ video {
 }
 
 /** Full-bleed media planes (heroes / auth panels) — overrides the reset above. */
-img.media-fill {
+img.media-fill,
+.app-shell-wallpaper__media {
   max-width: none;
   width: 100%;
   height: 100%;

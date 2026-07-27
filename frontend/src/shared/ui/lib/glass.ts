@@ -8,6 +8,9 @@ export const glassHeaderClass =
 export const glassNavClass =
   'glass-nav border-r border-white/50 bg-white/70 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl backdrop-saturate-150'
 
+export const glassFooterClass =
+  'glass-footer border-t border-white/50 bg-white/65 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl backdrop-saturate-150'
+
 export const glassPopoverClass =
   'glass-popover border border-white/60 bg-white/85 shadow-lg shadow-slate-900/10 backdrop-blur-xl backdrop-saturate-150'
 

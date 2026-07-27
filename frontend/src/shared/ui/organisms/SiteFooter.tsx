@@ -1,24 +1,34 @@
+import { cn } from '../../lib/cn'
+import { glassFooterClass } from '../lib/glass'
+
 const year = new Date().getFullYear()
 
 export function SiteFooter({
   variant = 'default',
+  surface = 'solid',
   className = '',
 }: {
   variant?: 'default' | 'compact'
+  /** `glass` matches app-shell chrome; `solid` for marketing / public. */
+  surface?: 'solid' | 'glass'
   className?: string
 }) {
   const isCompact = variant === 'compact'
 
   return (
     <footer
-      className={`mt-auto border-t border-border bg-card pb-[max(0.75rem,env(safe-area-inset-bottom))] ${
-        isCompact ? 'px-4 py-3.5 sm:px-6 lg:px-8' : 'px-4 py-7 sm:px-6 sm:py-9'
-      } ${className}`}
+      className={cn(
+        'mt-auto pb-[max(0.75rem,env(safe-area-inset-bottom))]',
+        isCompact ? 'px-4 py-3.5 sm:px-6 lg:px-8' : 'px-4 py-7 sm:px-6 sm:py-9',
+        surface === 'glass' ? glassFooterClass : 'border-t border-border bg-card',
+        className,
+      )}
     >
       <div
-        className={`mx-auto flex w-full max-w-6xl flex-col items-center justify-center text-center ${
-          isCompact ? 'gap-2' : 'gap-3'
-        }`}
+        className={cn(
+          'mx-auto flex w-full max-w-6xl flex-col items-center justify-center text-center',
+          isCompact ? 'gap-2' : 'gap-3',
+        )}
       >
         <div className="group flex flex-col items-center gap-2 sm:flex-row sm:gap-2.5">
           <span className="inline-flex aspect-square w-[clamp(1.5rem,3.5vw,2rem)] shrink-0 transition-transform duration-200 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
