@@ -15,13 +15,17 @@ function UserIcon() {
   )
 }
 
+export type UserMenuLink = { to: string; label: string }
+
 export function UserMenu({
   email,
   profileTo,
+  extraLinks,
   onLogout,
 }: {
   email?: string
   profileTo?: string
+  extraLinks?: UserMenuLink[]
   onLogout: () => void
 }) {
   const menuId = useId()
@@ -77,9 +81,14 @@ export function UserMenu({
           ) : null}
           {profileTo ? (
             <MenuLink to={profileTo} onNavigate={() => setOpen(false)}>
-            Perfil
-          </MenuLink>
+              Perfil
+            </MenuLink>
           ) : null}
+          {(extraLinks ?? []).map((l) => (
+            <MenuLink key={l.to} to={l.to} onNavigate={() => setOpen(false)}>
+              {l.label}
+            </MenuLink>
+          ))}
           <button
             type="button"
             role="menuitem"

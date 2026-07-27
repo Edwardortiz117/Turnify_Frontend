@@ -22,6 +22,8 @@ Post-login routing: `scope === "platform"` → `/platform`; `scope === "business
 
 **Multi-negocio (gerente):** un usuario puede tener varias membresías. El JWT fija un `business_id` activo; todas las rutas `/business/*` usan ese tenant. El panel muestra un selector y llama `POST /auth/switch-business` para cambiar contexto.
 
+**Crear otro negocio (misma cuenta):** `POST /api/v1/business/managed-businesses` `{ name, slug, timezone? }` → 201 con nuevo JWT ya apuntando a ese negocio + `businesses[]`. No uses `/auth/register` si el correo/documento ya existen.
+
 ## Public — `/api/v1/public`
 
 | Method | Path | Notes |

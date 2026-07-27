@@ -61,6 +61,7 @@ export function AppShell() {
         )
       }
       contentKey={activeId}
+      menuExtraLinks={[{ to: '/app/businesses/new', label: 'Nuevo negocio' }]}
       primaryAction={
         onAgenda ? undefined : { to: '/app/appointments?new=1', label: 'Nueva cita' }
       }

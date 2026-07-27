@@ -4,7 +4,7 @@ import { BrandLogo } from '../atoms/BrandLogo'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { SiteFooter } from '../organisms/SiteFooter'
-import { UserMenu } from '../organisms/UserMenu'
+import { UserMenu, type UserMenuLink } from '../organisms/UserMenu'
 import { cn } from '../../lib/cn'
 import { MarketingShell } from './MarketingShell'
 import { glassHeaderClass, glassNavClass } from '../lib/glass'
@@ -44,6 +44,7 @@ export function ShellFrame({
   email,
   links,
   profileTo,
+  menuExtraLinks,
   headerActions,
   headerTitle,
   contentKey,
@@ -55,6 +56,7 @@ export function ShellFrame({
   email?: string
   links: ShellLink[]
   profileTo?: string
+  menuExtraLinks?: UserMenuLink[]
   headerActions?: ReactNode
   /** Centered title or control in the top bar (e.g. business name / switcher). */
   headerTitle?: ReactNode
@@ -234,7 +236,12 @@ export function ShellFrame({
               </Link>
             ) : null}
             {headerActions}
-            <UserMenu email={email} profileTo={profileTo} onLogout={onLogout} />
+            <UserMenu
+              email={email}
+              profileTo={profileTo}
+              extraLinks={menuExtraLinks}
+              onLogout={onLogout}
+            />
           </div>
         </header>
 
@@ -273,21 +280,34 @@ export function PublicLayout({
   center?: boolean
 }) {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="relative isolate flex min-h-dvh flex-col">
+      <div className="app-shell-wallpaper" aria-hidden="true">
+        <img
+          src="/fondo_sistem-agenden.webp"
+          alt=""
+          className="app-shell-wallpaper__media"
+          width={1920}
+          height={1080}
+          decoding="async"
+          fetchPriority="low"
+        />
+      </div>
       <a href="#main-content" className="skip-link">
         Saltar al contenido
       </a>
       <div
         id="main-content"
         className={cn(
-          'surface-enter mx-auto w-full flex-1 px-4 sm:px-6 lg:px-8',
+          'relative z-10 surface-enter mx-auto w-full flex-1 px-4 sm:px-6 lg:px-8',
           wide ? 'max-w-5xl' : 'max-w-3xl',
           center ? 'flex flex-col justify-center py-8 sm:py-10' : 'py-5 sm:py-7 lg:py-8',
         )}
       >
         {children}
       </div>
-      <SiteFooter variant="compact" />
+      <div className="relative z-10">
+        <SiteFooter variant="compact" surface="glass" />
+      </div>
     </div>
   )
 }

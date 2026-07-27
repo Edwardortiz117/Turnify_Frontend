@@ -1,18 +1,22 @@
-/** Shared glass surface classes — keep blur/opacity consistent app-wide. */
+/** Shared glass / chrome surfaces. */
 export const glassPanelClass =
-  'glass-panel border border-white/55 bg-white/70 shadow-sm shadow-slate-900/[0.04] backdrop-blur-xl backdrop-saturate-150'
+  'glass-panel border border-border/80 bg-white/90 shadow-sm shadow-slate-900/[0.04] backdrop-blur-xl backdrop-saturate-150'
 
 export const glassHeaderClass =
-  'glass-header border-b border-white/50 bg-white/65 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl backdrop-saturate-150'
+  'border-b border-brand-700/30 bg-brand-600 text-white shadow-sm shadow-brand-900/15'
 
 export const glassNavClass =
-  'glass-nav border-r border-white/50 bg-white/70 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl backdrop-saturate-150'
+  'border-r border-border bg-white shadow-sm shadow-slate-900/[0.03]'
 
 export const glassFooterClass =
-  'glass-footer border-t border-white/50 bg-white/65 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl backdrop-saturate-150'
+  'border-t border-border bg-white'
 
 export const glassPopoverClass =
-  'glass-popover border border-white/60 bg-white/85 shadow-lg shadow-slate-900/10 backdrop-blur-xl backdrop-saturate-150'
+  'glass-popover border border-border bg-white shadow-lg shadow-slate-900/10 backdrop-blur-xl backdrop-saturate-150'
 
 export const glassCardAuthClass =
-  'glass-panel border-white/55 bg-white/70 shadow-lg shadow-slate-900/10 backdrop-blur-xl backdrop-saturate-150'
+  'glass-panel border border-border/80 bg-white/90 shadow-lg shadow-slate-900/10 backdrop-blur-xl backdrop-saturate-150'
+
+/** Icon buttons sitting on the brand (turquoise) header. */
+export const chromeOnBrandBtnClass =
+  'inline-flex size-11 items-center justify-center rounded-xl border border-white/35 bg-white/15 text-white shadow-sm backdrop-blur-sm transition duration-200 hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'

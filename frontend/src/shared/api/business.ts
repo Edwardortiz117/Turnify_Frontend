@@ -2,6 +2,7 @@ import { apiRequest } from './client'
 import type {
   Appointment,
   AppointmentStatus,
+  AuthTokenResponse,
   AvailabilityException,
   Business,
   BusinessDashboard,
@@ -18,6 +19,23 @@ import type {
 
 export function getDashboard() {
   return apiRequest<BusinessDashboard>('/business/dashboard', { auth: true })
+}
+
+/** Create another business for the logged-in manager (N:N). Returns JWT switched to it. */
+export function createManagedBusiness(body: {
+  name: string
+  slug: string
+  timezone?: string
+}) {
+  return apiRequest<
+    AuthTokenResponse & {
+      business?: { id: string; name: string; slug: string; status?: string }
+    }
+  >('/business/managed-businesses', {
+    method: 'POST',
+    auth: true,
+    body,
+  })
 }
 
 export function getProfile() {

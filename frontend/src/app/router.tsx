@@ -102,6 +102,11 @@ const ProfilePage = lazy(() =>
     default: m.ProfilePage,
   })),
 )
+const CreateManagedBusinessPage = lazy(() =>
+  import('../features/app/CreateManagedBusinessPage').then((m) => ({
+    default: m.CreateManagedBusinessPage,
+  })),
+)
 
 function Lazy({ children }: { children: ReactNode }) {
   return <Suspense fallback={<PageLoading />}>{children}</Suspense>
@@ -127,6 +132,7 @@ export function AppRouter() {
             <Route path="availability" element={<AvailabilityPage />} />
             <Route path="clients" element={<ClientsPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="businesses/new" element={<CreateManagedBusinessPage />} />
           </Route>
         </Route>
 

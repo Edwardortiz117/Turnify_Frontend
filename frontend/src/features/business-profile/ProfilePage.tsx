@@ -158,6 +158,15 @@ export function ProfilePage() {
         </div>
       </Card>
 
+      <Card className="mb-4 space-y-2">
+        <p className="text-sm font-semibold text-ink">Otros negocios</p>
+        <p className="text-xs text-pretty text-muted">
+          Crea otro negocio con la misma cuenta. Luego cámbialo desde el selector del
+          encabezado.
+        </p>
+        <TextLink to="/app/businesses/new">Nuevo negocio</TextLink>
+      </Card>
+
       <Card className="mb-4" interactive>
         <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
           <FormFieldInput
