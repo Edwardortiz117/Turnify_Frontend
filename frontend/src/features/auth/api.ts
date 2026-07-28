@@ -48,3 +48,10 @@ export function changePassword(input: { current_password: string; new_password: 
     body: input,
   })
 }
+
+export function logout() {
+  return apiRequest<{ ok: boolean }>('/auth/logout', {
+    method: 'POST',
+    auth: true,
+  })
+}

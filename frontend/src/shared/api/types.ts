@@ -37,7 +37,8 @@ export interface UserMe {
 }
 
 export interface AuthTokenResponse {
-  access_token: string
+  /** Optional in cookie-auth mode (preferred): backend sets HttpOnly cookie. */
+  access_token?: string
   token_type: string
   expires_in: number
   scope: AuthScope

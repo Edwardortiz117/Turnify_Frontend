@@ -48,7 +48,6 @@ export function BusinessSwitcher({
     try {
       const res = await switchBusiness(nextId)
       setSessionFromAuth({
-        access_token: res.access_token,
         scope: res.scope,
         business_id: res.business_id,
         email: session.email,

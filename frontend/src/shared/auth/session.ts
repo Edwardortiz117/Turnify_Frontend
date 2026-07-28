@@ -3,7 +3,6 @@ import type { SessionBusiness } from '../api/types'
 const STORAGE_KEY = 'turnify.session'
 
 export interface Session {
-  access_token: string
   scope: 'business' | 'platform'
   business_id?: string
   email?: string
@@ -31,14 +30,31 @@ export function loadSession(): Session | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as Session
+    const parsed = JSON.parse(raw) as Partial<Session & { access_token?: string }>
+    if (parsed.scope !== 'business' && parsed.scope !== 'platform') return null
+
+    // One-time legacy cleanup: purge token if it was persisted in older clients.
+    const sanitized: Session = {
+      scope: parsed.scope,
+      business_id: parsed.business_id,
+      email: parsed.email,
+      businesses: parsed.businesses,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized))
+    return sanitized
   } catch {
     return null
   }
 }
 
 export function saveSession(session: Session): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+  const stored: Session = {
+    scope: session.scope,
+    business_id: session.business_id,
+    email: session.email,
+    businesses: session.businesses,
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
 }
 
 export function clearSession(): void {
@@ -47,5 +63,6 @@ export function clearSession(): void {
 }
 
 export function getAccessToken(): string | null {
-  return loadSession()?.access_token ?? null
+  // JWT is HttpOnly cookie managed by backend; never exposed to JS.
+  return null
 }

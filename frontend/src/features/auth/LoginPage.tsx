@@ -23,7 +23,6 @@ export function LoginPage() {
     try {
       const res = await login({ email, password })
       setSessionFromAuth({
-        access_token: res.access_token,
         scope: res.scope,
         business_id: res.business_id,
         email,

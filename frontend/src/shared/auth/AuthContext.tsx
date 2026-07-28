@@ -14,10 +14,10 @@ import {
   saveSession,
   type Session,
 } from '../../shared/auth/session'
+import { logout as logoutApi } from '../../features/auth/api'
 import type { AuthScope, SessionBusiness } from '../../shared/api/types'
 
 export type AuthSessionInput = {
-  access_token: string
   scope: AuthScope
   business_id?: string
   email?: string
@@ -43,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setSessionFromAuth = useCallback((input: AuthSessionInput) => {
     const next: Session = {
-      access_token: input.access_token,
       scope: input.scope,
       business_id: input.business_id,
       email: input.email,
@@ -66,13 +65,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(() => {
+    void logoutApi().catch(() => {
+      /* ignore network/logout race and still clear client state */
+    })
     clearSession()
   }, [])
 
   const value = useMemo(
     () => ({
       session,
-      isAuthenticated: Boolean(session?.access_token),
+      isAuthenticated: Boolean(session),
       setSessionFromAuth,
       patchSession,
       logout,

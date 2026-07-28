@@ -53,7 +53,6 @@ export function RegisterPage() {
 
   function applySession(res: AuthTokenResponse, fallbackEmail: string) {
     setSessionFromAuth({
-      access_token: res.access_token,
       scope: res.scope,
       business_id: res.business_id ?? res.business?.id,
       email: res.user?.email ?? fallbackEmail,

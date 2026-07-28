@@ -34,6 +34,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       method,
       headers: reqHeaders,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      credentials: 'include',
       signal,
     })
   } catch (err) {

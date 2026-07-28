@@ -44,9 +44,9 @@ export function AppShell() {
     return () => {
       cancelled = true
     }
-    // Only on mount / token change
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: refresh when access token changes
-  }, [session?.access_token])
+    // Only on mount / business context change
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [session?.business_id, session?.scope])
 
   return (
     <ShellFrame
