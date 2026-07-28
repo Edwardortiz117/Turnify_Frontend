@@ -1,3 +1,8 @@
+/**
+ * Shape used by notification builders / tests.
+ * Persistence is server-side only (`/business/reschedule-requests`).
+ * Do not write these to localStorage — that was a temporary MVP fake.
+ */
 export type RescheduleRequest = {
   id: string
   slug: string
@@ -8,80 +13,18 @@ export type RescheduleRequest = {
   createdAt: string
 }
 
-const storageKey = (slug: string) => `turnify.rescheduleRequests.${slug}`
+const LEGACY_PREFIX = 'turnify.rescheduleRequests.'
 
-export const readRescheduleRequests = (slug: string): RescheduleRequest[] => {
+/** One-shot cleanup so old browser fakes cannot look like real API data. */
+export function purgeLegacyRescheduleRequestStorage(): void {
   try {
-    const raw = localStorage.getItem(storageKey(slug))
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as unknown
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter(
-      (item): item is RescheduleRequest =>
-        !!item &&
-        typeof item === 'object' &&
-        typeof (item as RescheduleRequest).id === 'string' &&
-        typeof (item as RescheduleRequest).appointmentId === 'string' &&
-        typeof (item as RescheduleRequest).message === 'string',
-    )
+    const toRemove: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key?.startsWith(LEGACY_PREFIX)) toRemove.push(key)
+    }
+    for (const key of toRemove) localStorage.removeItem(key)
   } catch {
-    return []
-  }
-}
-
-const RESCHEDULE_CHANGED_EVENT = 'turnify:reschedule-requests-changed'
-
-function notifyRescheduleRequestsChanged(slug: string) {
-  try {
-    window.dispatchEvent(
-      new CustomEvent(RESCHEDULE_CHANGED_EVENT, { detail: { slug } }),
-    )
-  } catch {
-    /* ignore */
-  }
-}
-
-export const addRescheduleRequest = (
-  input: Omit<RescheduleRequest, 'id' | 'createdAt'>,
-): RescheduleRequest => {
-  const request: RescheduleRequest = {
-    ...input,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-  }
-  const prev = readRescheduleRequests(input.slug)
-  localStorage.setItem(storageKey(input.slug), JSON.stringify([request, ...prev].slice(0, 50)))
-  notifyRescheduleRequestsChanged(input.slug)
-  return request
-}
-
-export const findRescheduleRequestByAppointmentId = (
-  slug: string,
-  appointmentId: string,
-): RescheduleRequest | undefined =>
-  readRescheduleRequests(slug).find((r) => r.appointmentId === appointmentId)
-
-export const discardRescheduleRequest = (slug: string, requestId: string) => {
-  const next = readRescheduleRequests(slug).filter((r) => r.id !== requestId)
-  localStorage.setItem(storageKey(slug), JSON.stringify(next))
-  notifyRescheduleRequestsChanged(slug)
-}
-
-export function onRescheduleRequestsChanged(
-  listener: (slug?: string) => void,
-): () => void {
-  const onCustom = (e: Event) => {
-    const detail = (e as CustomEvent<{ slug?: string }>).detail
-    listener(detail?.slug)
-  }
-  const onStorage = (e: StorageEvent) => {
-    if (!e.key?.startsWith('turnify.rescheduleRequests.')) return
-    listener(e.key.replace('turnify.rescheduleRequests.', ''))
-  }
-  window.addEventListener(RESCHEDULE_CHANGED_EVENT, onCustom)
-  window.addEventListener('storage', onStorage)
-  return () => {
-    window.removeEventListener(RESCHEDULE_CHANGED_EVENT, onCustom)
-    window.removeEventListener('storage', onStorage)
+    /* private mode / blocked storage */
   }
 }

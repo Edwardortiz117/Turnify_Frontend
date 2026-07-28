@@ -218,6 +218,20 @@ export function MyAppointmentsPage() {
       setItems((prev) => prev.filter((a) => a.id !== appointmentId))
     } catch (err) {
       setError(getErrorMessage(err))
+      // Refresh list — backend may have a different status than the last lookup.
+      try {
+        const known = listRememberedBusinesses()
+        if (phone.trim() && known.length > 0) {
+          const { items: found, warnings: w } = await lookupAcrossBusinesses(
+            phone.trim(),
+            known,
+          )
+          setItems(found)
+          setWarnings(w)
+        }
+      } catch {
+        /* keep previous items if refresh fails */
+      }
     } finally {
       setCancellingId(null)
     }

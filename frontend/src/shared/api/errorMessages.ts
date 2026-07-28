@@ -10,7 +10,8 @@ export const ERROR_MESSAGES_ES: Record<string, string> = {
   NOT_FOUND: 'No encontramos lo que buscas.',
   SLOT_OCCUPIED: 'Ese horario acabó de ocuparse. Elige otro.',
   PROFESSIONAL_INACTIVE: 'El profesional no está disponible.',
-  INVALID_STATE_TRANSITION: 'No se puede cambiar el estado de esta cita.',
+  INVALID_STATE_TRANSITION:
+    'Esta cita ya no está confirmada (pudo completarse o cancelarse). Actualiza la lista e inténtalo de nuevo.',
   EMAIL_ALREADY_REGISTERED: 'Ese correo ya está registrado.',
   DOCUMENT_ALREADY_REGISTERED: 'Ese documento ya está registrado.',
   DOCUMENT_MISMATCH: 'El documento no coincide con la cuenta de este correo.',
